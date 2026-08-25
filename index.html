@@ -38,7 +38,7 @@
         <!-- Header & Tabs -->
         <div class="bg-emerald-600 p-6 text-white text-center relative">
             <h1 class="text-3xl font-bold mb-2">Công Cụ Xuất JSON ra Excel</h1>
-            <p class="text-emerald-100 text-sm">Hỗ trợ 3 định dạng: Tự Luận, Trắc Nghiệm & Lý Thuyết</p>
+            <p class="text-emerald-100 text-sm">Hỗ trợ 4 định dạng: Tự Luận, Trắc Nghiệm, Lý Thuyết & Chuyên Đề</p>
             
             <div class="flex justify-center mt-6 gap-2">
                 <button onclick="switchTab('guide')" id="tabBtn-guide" class="px-6 py-2 bg-white text-emerald-700 font-semibold rounded-t-lg transition-colors border-b-4 border-transparent hover:bg-emerald-50">
@@ -182,6 +182,43 @@ Cấu trúc mỗi object: {"ten_de_muc": "...", "muc_con": "...", "ly_thuyet_1":
   }
 ]</pre>
                 </div>
+
+                <!-- Định dạng 4 -->
+                <div class="border rounded-xl overflow-hidden">
+                    <div class="bg-gray-100 px-4 py-3 flex justify-between items-center border-b">
+                        <h3 class="font-bold text-gray-800">Định dạng 4: Soạn chuyên đề (3 Cột)</h3>
+                        <button onclick="useSample(4)" class="bg-pink-600 hover:bg-pink-700 text-white text-xs font-bold py-1.5 px-3 rounded shadow transition">Dùng mẫu này</button>
+                    </div>
+                    <div class="p-4 text-sm text-gray-600 mb-0 bg-white">
+                        Cấu trúc gồm: <code>tieu_de</code>, <code>tieu_de_2</code>, <code>noi_dung</code>. Trong phần nội dung, các ý chính sẽ được xuống dòng và phân cách bằng ký hiệu <code>||</code>. Dữ liệu xuất ra Excel sẽ nằm ở 3 cột.
+                    </div>
+                    
+                    <!-- Prompt AI Dạng 4 -->
+                    <div class="bg-amber-50 p-4 border-y border-amber-200">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-semibold text-amber-800">🤖 Prompt mẫu cho AI (Sửa TÊN CHUYÊN ĐỀ)</span>
+                            <button onclick="copyPrompt(this, 'prompt-4')" class="bg-amber-200 text-amber-800 hover:bg-amber-300 text-xs font-bold py-1.5 px-3 rounded shadow-sm transition">📋 Copy Prompt</button>
+                        </div>
+                        <textarea id="prompt-4" class="w-full text-sm p-3 border border-amber-200 rounded-lg bg-white text-gray-700 resize-none outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" rows="5">Đóng vai một chuyên gia giáo dục. Hãy soạn nội dung chi tiết cho chuyên đề "[TÊN CHUYÊN ĐỀ]".
+Yêu cầu xuất ra MỘT MẢNG JSON duy nhất. Cấu trúc mỗi object: {"tieu_de": "...", "tieu_de_2": "...", "noi_dung": "..."}.
+Yêu cầu quan trọng: Trong trường "noi_dung", hãy gom các đoạn văn bản lại, mỗi ý chính bắt buộc phải xuống dòng và có ký hiệu || ở đầu mỗi ý (ví dụ: || Ý 1 \n|| Ý 2).
+Không kèm văn bản giải thích hay markdown code block thừa (như ```json).</textarea>
+                    </div>
+
+                    <pre class="bg-gray-800 text-green-400 p-4 text-xs overflow-x-auto rounded-b-xl max-h-60" id="sample-json-4">
+[
+  {
+    "tieu_de": "Chuyên đề 1: Khảo sát hàm số",
+    "tieu_de_2": "1. Tính đơn điệu của hàm số",
+    "noi_dung": "|| Cho hàm số y = f(x) có đạo hàm trên K.\n|| Nếu f'(x) > 0 với mọi x thuộc K thì hàm số đồng biến trên K.\n|| Nếu f'(x) < 0 với mọi x thuộc K thì hàm số nghịch biến trên K.\n|| Chú ý: Nếu f'(x) = 0 tại hữu hạn điểm thì định lý vẫn đúng."
+  },
+  {
+    "tieu_de": "Chuyên đề 1: Khảo sát hàm số",
+    "tieu_de_2": "2. Cực trị của hàm số",
+    "noi_dung": "|| Điểm cực đại là điểm mà đạo hàm đổi dấu từ dương sang âm.\n|| Điểm cực tiểu là điểm mà đạo hàm đổi dấu từ âm sang dương."
+  }
+]</pre>
+                </div>
             </div>
 
             <!-- TAB: CÔNG CỤ -->
@@ -202,6 +239,10 @@ Cấu trúc mỗi object: {"ten_de_muc": "...", "muc_con": "...", "ly_thuyet_1":
                         <label class="flex items-center cursor-pointer">
                             <input type="radio" name="formatType" value="lythuyet" class="w-5 h-5 text-purple-600 border-gray-300 focus:ring-purple-500">
                             <span class="ml-2 text-gray-800">Dạng 3: Lý thuyết (Nhiều cột)</span>
+                        </label>
+                        <label class="flex items-center cursor-pointer">
+                            <input type="radio" name="formatType" value="soanchuyende" class="w-5 h-5 text-pink-600 border-gray-300 focus:ring-pink-500">
+                            <span class="ml-2 text-gray-800">Dạng 4: Soạn chuyên đề (3 Cột)</span>
                         </label>
                     </div>
                 </div>
@@ -302,6 +343,7 @@ Cấu trúc mỗi object: {"ten_de_muc": "...", "muc_con": "...", "ly_thuyet_1":
             const radioTựLuận = document.querySelector('input[value="tuluan"]');
             const radioTrắcNghiệm = document.querySelector('input[value="tracnghiem"]');
             const radioLyThuyet = document.querySelector('input[value="lythuyet"]');
+            const radioSoanChuyenDe = document.querySelector('input[value="soanchuyende"]');
             
             if (formatType === 1) {
                 radioTựLuận.checked = true;
@@ -309,9 +351,12 @@ Cấu trúc mỗi object: {"ten_de_muc": "...", "muc_con": "...", "ly_thuyet_1":
             } else if (formatType === 2) {
                 radioTrắcNghiệm.checked = true;
                 document.getElementById('filenameInput').value = "Du_Lieu_Trac_Nghiem";
-            } else {
+            } else if (formatType === 3) {
                 radioLyThuyet.checked = true;
                 document.getElementById('filenameInput').value = "Du_Lieu_Ly_Thuyet";
+            } else {
+                radioSoanChuyenDe.checked = true;
+                document.getElementById('filenameInput').value = "Du_Lieu_Chuyen_De";
             }
             
             // Chuyển sang tab Công cụ
@@ -447,6 +492,14 @@ Cấu trúc mỗi object: {"ten_de_muc": "...", "muc_con": "...", "ly_thuyet_1":
                     for (let i = 0; i < maxLyThuyetIndex; i++) {
                         wsCols.push({wch: 40});
                     }
+                } else if (selectedFormat === 'soanchuyende') {
+                    // Dạng 4: Soạn chuyên đề (3 cột)
+                    excelData = data.map(item => [
+                        item.tieu_de || '', 
+                        item.tieu_de_2 || '', 
+                        item.noi_dung || ''
+                    ]);
+                    wsCols = [{wch: 35}, {wch: 35}, {wch: 80}]; // Cột nội dung rộng hơn
                 }
 
                 // 3. Tạo Workbook & Worksheet (Sử dụng hàm aoa_to_sheet để xuất mảng thô không tiêu đề)
