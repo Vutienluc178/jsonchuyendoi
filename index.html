@@ -3,96 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chuyển Đổi JSON sang Excel</title>
-    <!-- Kéo thư viện Tailwind CSS để styling -->
+    <title>Công cụ chuyển đổi JSON/Markdown sang Excel</title>
+    <!-- Thư viện giao diện Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Thư viện SheetJS để xuất file Excel -->
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <!-- Thư viện xuất file Excel SheetJS -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <style>
-        body {
-            font-family: 'Inter', system-ui, sans-serif;
-            background-color: #f0fdf4; /* Nền xanh nhạt nhẹ nhàng */
-        }
-        /* Tùy chỉnh thanh cuộn cho đẹp hơn */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1; 
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #c1c1c1; 
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8; 
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .tab-active { border-bottom: 2px solid #4f46e5; color: #4f46e5; font-weight: 600; }
+        .tab-inactive { color: #6b7280; font-weight: 500; }
+        .tab-inactive:hover { color: #374151; }
     </style>
 </head>
-<body class="min-h-screen flex items-start justify-center p-4 md:p-8">
+<body class="min-h-screen text-gray-800 p-4 sm:p-8">
 
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden">
+    <div class="max-w-6xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
         
-        <!-- Header & Tabs -->
-        <div class="bg-emerald-600 p-6 text-white text-center relative">
-            <h1 class="text-3xl font-bold mb-2">Công Cụ Xuất JSON ra Excel</h1>
-            <p class="text-emerald-100 text-sm">Hỗ trợ 4 định dạng: Tự Luận, Trắc Nghiệm, Lý Thuyết & Chuyên Đề</p>
-            
-            <div class="flex justify-center mt-6 gap-2">
-                <button onclick="switchTab('guide')" id="tabBtn-guide" class="px-6 py-2 bg-white text-emerald-700 font-semibold rounded-t-lg transition-colors border-b-4 border-transparent hover:bg-emerald-50">
-                    📖 Menu Hướng Dẫn
-                </button>
-                <button onclick="switchTab('tool')" id="tabBtn-tool" class="px-6 py-2 bg-emerald-700 text-emerald-100 font-semibold rounded-t-lg transition-colors border-b-4 border-transparent hover:bg-emerald-800">
-                    ⚙️ Công Cụ Chuyển Đổi
-                </button>
-            </div>
+        <!-- Header -->
+        <div class="bg-indigo-600 p-6 text-white text-center">
+            <h1 class="text-3xl font-bold mb-2">Công cụ chuyển đổi JSON & Markdown sang Excel</h1>
+            <p class="text-indigo-200">Hỗ trợ 5 định dạng dữ liệu Toán học, tối ưu cho giáo viên</p>
         </div>
 
-        <div class="p-6 md:p-8">
-            
-            <!-- TAB: HƯỚNG DẪN -->
-            <div id="tab-guide" class="space-y-8">
-                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r">
-                    <p class="text-sm text-blue-800">
-                        <strong>Lưu ý:</strong> Dưới đây là 2 định dạng JSON được hỗ trợ. Bạn có thể nhấn nút <strong>"Dùng mẫu này"</strong> để chuyển ngay dữ liệu sang công cụ và xuất thử.
-                    </p>
-                </div>
+        <!-- Navigation Tabs -->
+        <div class="flex border-b">
+            <button onclick="switchTab('guide')" id="tab-guide" class="flex-1 py-4 text-center tab-active transition">📖 Hướng dẫn & Lệnh Mẫu</button>
+            <button onclick="switchTab('converter')" id="tab-converter" class="flex-1 py-4 text-center tab-inactive transition">⚡ Công Cụ Chuyển Đổi</button>
+        </div>
 
+        <!-- TAB HƯỚNG DẪN -->
+        <div id="guide-content" class="p-6 space-y-6">
+            
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded text-blue-800 text-sm">
+                <strong>Cách dùng:</strong> Hãy copy một trong các Lệnh Mẫu (Prompt) bên dưới, dán vào Gemini hoặc ChatGPT và thay thế [SỐ LƯỢNG], [CHỦ ĐỀ]. Sau khi AI trả kết quả, copy phần nội dung và dán vào Tab Công Cụ.
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Định dạng 1 -->
                 <div class="border rounded-xl overflow-hidden">
                     <div class="bg-gray-100 px-4 py-3 flex justify-between items-center border-b">
                         <h3 class="font-bold text-gray-800">Định dạng 1: Tự luận (3 cột)</h3>
-                        <button onclick="useSample(1)" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1.5 px-3 rounded shadow transition">Dùng mẫu này</button>
+                        <button onclick="useSample(1)" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-1.5 px-3 rounded shadow transition">Dùng mẫu này</button>
                     </div>
-                    <div class="p-4 text-sm text-gray-600 mb-0 bg-white">
-                        Cấu trúc gồm: <code>cau_hoi</code>, <code>dap_an</code>, <code>goi_y</code>. Dữ liệu xuất ra Excel sẽ nằm ở 3 cột (không có tiêu đề).
+                    <div class="p-4 bg-gray-50 text-sm">
+                        <p class="font-semibold mb-2">Lệnh Mẫu (Copy gửi AI):</p>
+                        <textarea class="w-full text-xs p-2 border rounded bg-white" rows="4" readonly>Đóng vai trò chuyên gia tạo mã JSON xuất sắc có 20 năm kinh nghiệm, hãy tạo mã JSON về [SỐ LƯỢNG] câu hỏi toán về chủ đề [CHỦ ĐỀ] có định dạng: "cau_hoi", "dap_an" và "goi_y". Chỉ trả về mã JSON, các công thức toán dùng LaTeX bọc trong dấu $.</textarea>
                     </div>
-                    
-                    <!-- Prompt AI Dạng 1 -->
-                    <div class="bg-amber-50 p-4 border-y border-amber-200">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-sm font-semibold text-amber-800">🤖 Prompt mẫu cho AI (Sửa SỐ LƯỢNG và TÊN CHỦ ĐỀ)</span>
-                            <button onclick="copyPrompt(this, 'prompt-1')" class="bg-amber-200 text-amber-800 hover:bg-amber-300 text-xs font-bold py-1.5 px-3 rounded shadow-sm transition">📋 Copy Prompt</button>
-                        </div>
-                        <textarea id="prompt-1" class="w-full text-sm p-3 border border-amber-200 rounded-lg bg-white text-gray-700 resize-none outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" rows="5">Đóng vai một giáo viên Toán xuất sắc có 20 năm kinh nghiệm. Hãy tạo [SỐ LƯỢNG] câu hỏi tự luận môn Toán về chủ đề "[TÊN CHỦ ĐỀ]".
-Yêu cầu xuất ra MỘT MẢNG JSON duy nhất, không kèm văn bản giải thích hay markdown code block thừa (như ```json).
-Cấu trúc mỗi object: {"cau_hoi": "...", "dap_an": "...", "goi_y": "..."}.
-Định dạng công thức toán học bằng LaTeX bọc trong dấu $ (ví dụ: $x^2 + 1$).</textarea>
-                    </div>
-
-                    <pre class="bg-gray-800 text-green-400 p-4 text-xs overflow-x-auto rounded-b-xl max-h-60" id="sample-json-1">
+                    <pre class="bg-gray-800 text-gray-200 p-4 text-xs overflow-x-auto rounded-b-xl max-h-40" id="sample-json-1">
 [
   {
-    "cau_hoi": "Một tam giác vuông có độ dài hai cạnh góc vuông lần lượt là $3\\text{ cm}$ và $4\\text{ cm}$. Tính diện tích của tam giác vuông đó.",
-    "dap_an": "$6\\text{ cm}^2$",
-    "goi_y": "Áp dụng công thức $S = \\frac{1}{2}ab$, trong đó $a$ và $b$ là độ dài hai cạnh góc vuông."
-  },
-  {
-    "cau_hoi": "Cho một tam giác vuông có cạnh huyền dài $13\\text{ cm}$ và một cạnh góc vuông dài $5\\text{ cm}$. Diện tích của tam giác vuông này là bao nhiêu?",
-    "dap_an": "$30\\text{ cm}^2$",
-    "goi_y": "Bước 1: Sử dụng định lý Pythagore ($a^2 + b^2 = c^2$) để tìm độ dài cạnh góc vuông còn lại. Bước 2: Tính diện tích bằng tích hai cạnh góc vuông chia đôi."
+    "cau_hoi": "Giải phương trình $2x - 4 = 0$",
+    "dap_an": "$x = 2$",
+    "goi_y": "Chuyển vế và chia hai vế cho 2."
   }
 ]</pre>
                 </div>
@@ -101,43 +63,22 @@ Cấu trúc mỗi object: {"cau_hoi": "...", "dap_an": "...", "goi_y": "..."}.
                 <div class="border rounded-xl overflow-hidden">
                     <div class="bg-gray-100 px-4 py-3 flex justify-between items-center border-b">
                         <h3 class="font-bold text-gray-800">Định dạng 2: Trắc nghiệm (7 cột)</h3>
-                        <button onclick="useSample(2)" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-1.5 px-3 rounded shadow transition">Dùng mẫu này</button>
+                        <button onclick="useSample(2)" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-1.5 px-3 rounded shadow transition">Dùng mẫu này</button>
                     </div>
-                    <div class="p-4 text-sm text-gray-600 mb-0 bg-white">
-                        Cấu trúc gồm: <code>cau_hoi</code>, <code>phuong_an_1</code> đến <code>4</code>, <code>dap_an_dung</code> (số), <code>loi_giai</code>. Dữ liệu xuất ra Excel sẽ nằm ở 7 cột (không có tiêu đề).
+                    <div class="p-4 bg-gray-50 text-sm">
+                        <p class="font-semibold mb-2">Lệnh Mẫu (Copy gửi AI):</p>
+                        <textarea class="w-full text-xs p-2 border rounded bg-white" rows="4" readonly>Đóng vai trò chuyên gia toán học, tạo mã JSON [SỐ LƯỢNG] câu trắc nghiệm chủ đề [CHỦ ĐỀ]. Cấu trúc mảng gồm các keys: "cau_hoi", "phuong_an_1", "phuong_an_2", "phuong_an_3", "phuong_an_4", "dap_an_dung" (chỉ ghi số 1, 2, 3 hoặc 4), "loi_giai". Công thức dùng $.</textarea>
                     </div>
-                    
-                    <!-- Prompt AI Dạng 2 -->
-                    <div class="bg-amber-50 p-4 border-y border-amber-200">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-sm font-semibold text-amber-800">🤖 Prompt mẫu cho AI (Sửa SỐ LƯỢNG và TÊN CHỦ ĐỀ)</span>
-                            <button onclick="copyPrompt(this, 'prompt-2')" class="bg-amber-200 text-amber-800 hover:bg-amber-300 text-xs font-bold py-1.5 px-3 rounded shadow-sm transition">📋 Copy Prompt</button>
-                        </div>
-                        <textarea id="prompt-2" class="w-full text-sm p-3 border border-amber-200 rounded-lg bg-white text-gray-700 resize-none outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" rows="5">Đóng vai một giáo viên Toán xuất sắc có 20 năm kinh nghiệm. Hãy tạo [SỐ LƯỢNG] câu hỏi trắc nghiệm môn Toán về chủ đề "[TÊN CHỦ ĐỀ]".
-Yêu cầu xuất ra MỘT MẢNG JSON duy nhất, không kèm văn bản giải thích hay markdown code block thừa (như ```json).
-Cấu trúc mỗi object: {"cau_hoi": "...", "phuong_an_1": "...", "phuong_an_2": "...", "phuong_an_3": "...", "phuong_an_4": "...", "dap_an_dung": <số nguyên từ 1 đến 4>, "loi_giai": "..."}.
-Định dạng công thức toán học bằng LaTeX bọc trong dấu $ (ví dụ: $x^2 + 1$).</textarea>
-                    </div>
-
-                    <pre class="bg-gray-800 text-green-400 p-4 text-xs overflow-x-auto rounded-b-xl max-h-60" id="sample-json-2">
+                    <pre class="bg-gray-800 text-gray-200 p-4 text-xs overflow-x-auto rounded-b-xl max-h-40" id="sample-json-2">
 [
   {
-    "cau_hoi": "Một tam giác vuông có độ dài hai cạnh góc vuông lần lượt là $3\\text{ cm}$ và $4\\text{ cm}$. Tính diện tích của tam giác vuông đó.",
-    "phuong_an_1": "$6\\text{ cm}^2$",
-    "phuong_an_2": "$12\\text{ cm}^2$",
-    "phuong_an_3": "$5\\text{ cm}^2$",
-    "phuong_an_4": "$7\\text{ cm}^2$",
+    "cau_hoi": "Tính đạo hàm của hàm số $y = x^2$",
+    "phuong_an_1": "$y' = 2x$",
+    "phuong_an_2": "$y' = x$",
+    "phuong_an_3": "$y' = 2$",
+    "phuong_an_4": "$y' = x^2$",
     "dap_an_dung": 1,
-    "loi_giai": "Áp dụng công thức $S = \\frac{1}{2}ab = \\frac{1}{2} \\cdot 3 \\cdot 4 = 6 \\text{ cm}^2$."
-  },
-  {
-    "cau_hoi": "Cho một tam giác vuông có cạnh huyền dài $13\\text{ cm}$ và một cạnh góc vuông dài $5\\text{ cm}$. Diện tích của tam giác vuông này là bao nhiêu?",
-    "phuong_an_1": "$65\\text{ cm}^2$",
-    "phuong_an_2": "$32.5\\text{ cm}^2$",
-    "phuong_an_3": "$30\\text{ cm}^2$",
-    "phuong_an_4": "$60\\text{ cm}^2$",
-    "dap_an_dung": 3,
-    "loi_giai": "Cạnh góc vuông còn lại: $\\sqrt{13^2 - 5^2} = 12\\text{ cm}$. Diện tích: $\\frac{1}{2} \\cdot 5 \\cdot 12 = 30 \\text{ cm}^2$."
+    "loi_giai": "Áp dụng công thức $(x^n)' = n.x^{n-1}$ ta được $(x^2)' = 2x$."
   }
 ]</pre>
                 </div>
@@ -145,40 +86,21 @@ Cấu trúc mỗi object: {"cau_hoi": "...", "phuong_an_1": "...", "phuong_an_2"
                 <!-- Định dạng 3 -->
                 <div class="border rounded-xl overflow-hidden">
                     <div class="bg-gray-100 px-4 py-3 flex justify-between items-center border-b">
-                        <h3 class="font-bold text-gray-800">Định dạng 3: Lý thuyết (Tự động mở rộng cột)</h3>
-                        <button onclick="useSample(3)" class="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold py-1.5 px-3 rounded shadow transition">Dùng mẫu này</button>
+                        <h3 class="font-bold text-gray-800">Định dạng 3: Lý thuyết (Nhiều cột động)</h3>
+                        <button onclick="useSample(3)" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-1.5 px-3 rounded shadow transition">Dùng mẫu này</button>
                     </div>
-                    <div class="p-4 text-sm text-gray-600 mb-0 bg-white">
-                        Cấu trúc gồm: <code>ten_de_muc</code>, <code>muc_con</code>, và các cột <code>ly_thuyet_1</code>, <code>ly_thuyet_2</code>, <code>ly_thuyet_3</code>... (số lượng tuỳ ý). Ứng dụng sẽ tự động phân bổ thành bao nhiêu cột Excel tương ứng mà không bị giới hạn.
+                    <div class="p-4 bg-gray-50 text-sm">
+                        <p class="font-semibold mb-2">Lệnh Mẫu (Copy gửi AI):</p>
+                        <textarea class="w-full text-xs p-2 border rounded bg-white" rows="4" readonly>Tạo file JSON lý thuyết môn Toán chủ đề [CHỦ ĐỀ]. Cấu trúc keys: "tieu_de", "muc_con", "ly_thuyet_1", "ly_thuyet_2",... Có thể linh hoạt thêm bao nhiêu cột lý thuyết tùy độ dài. Công thức toán dùng $.</textarea>
                     </div>
-                    
-                    <!-- Prompt AI Dạng 3 -->
-                    <div class="bg-amber-50 p-4 border-y border-amber-200">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-sm font-semibold text-amber-800">🤖 Prompt mẫu cho AI (Sửa SỐ LƯỢNG và TÊN CHỦ ĐỀ)</span>
-                            <button onclick="copyPrompt(this, 'prompt-3')" class="bg-amber-200 text-amber-800 hover:bg-amber-300 text-xs font-bold py-1.5 px-3 rounded shadow-sm transition">📋 Copy Prompt</button>
-                        </div>
-                        <textarea id="prompt-3" class="w-full text-sm p-3 border border-amber-200 rounded-lg bg-white text-gray-700 resize-none outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" rows="5">Đóng vai một giáo viên Toán xuất sắc có 20 năm kinh nghiệm. Hãy tổng hợp lý thuyết trọng tâm về chủ đề "[TÊN CHỦ ĐỀ]" và chia thành [SỐ LƯỢNG] mục con.
-Yêu cầu xuất ra MỘT MẢNG JSON duy nhất, không kèm văn bản giải thích hay markdown code block thừa (như ```json).
-Cấu trúc mỗi object: {"ten_de_muc": "...", "muc_con": "...", "ly_thuyet_1": "...", "ly_thuyet_2": "..."}. Có thể tự tăng số lượng key "ly_thuyet_n" lên 3, 4, 5... tùy vào độ dài của lý thuyết.
-Định dạng công thức toán học bằng LaTeX bọc trong dấu $ (ví dụ: $x^2 + 1$).</textarea>
-                    </div>
-
-                    <pre class="bg-gray-800 text-green-400 p-4 text-xs overflow-x-auto rounded-b-xl max-h-60" id="sample-json-3">
+                    <pre class="bg-gray-800 text-gray-200 p-4 text-xs overflow-x-auto rounded-b-xl max-h-40" id="sample-json-3">
 [
   {
-    "ten_de_muc": "Chương 1: Khối đa diện",
-    "muc_con": "1. Khái niệm về khối đa diện",
-    "ly_thuyet_1": "Khối đa diện là phần không gian được giới hạn bởi một hình đa diện.",
-    "ly_thuyet_2": "Mỗi đa giác gọi là một mặt của khối đa diện.",
-    "ly_thuyet_3": "Các đỉnh, cạnh của đa giác lần lượt gọi là đỉnh, cạnh của đa diện."
-  },
-  {
-    "ten_de_muc": "Chương 1: Khối đa diện",
-    "muc_con": "2. Khối đa diện lồi",
-    "ly_thuyet_1": "Khối đa diện (H) được gọi là khối đa diện lồi nếu đoạn thẳng nối hai điểm bất kì của (H) luôn thuộc (H).",
-    "ly_thuyet_2": "Khối chóp, khối lăng trụ luôn là các khối đa diện lồi.",
-    "ly_thuyet_4": "Lưu ý: Ví dụ cột lý thuyết số 3 bị thiếu, hệ thống vẫn xếp mục này vào đúng cột số 4 (Lý thuyết 4)."
+    "tieu_de": "Hàm số lượng giác",
+    "muc_con": "Hàm số $y = \\sin(x)$",
+    "ly_thuyet_1": "Tập xác định: $D = \\mathbb{R}$",
+    "ly_thuyet_2": "Tập giá trị: $[-1; 1]$",
+    "ly_thuyet_3": "Chu kỳ tuần hoàn: $T = 2\\pi$"
   }
 ]</pre>
                 </div>
@@ -186,42 +108,25 @@ Cấu trúc mỗi object: {"ten_de_muc": "...", "muc_con": "...", "ly_thuyet_1":
                 <!-- Định dạng 4 -->
                 <div class="border rounded-xl overflow-hidden">
                     <div class="bg-gray-100 px-4 py-3 flex justify-between items-center border-b">
-                        <h3 class="font-bold text-gray-800">Định dạng 4: Soạn chuyên đề (3 Cột)</h3>
-                        <button onclick="useSample(4)" class="bg-pink-600 hover:bg-pink-700 text-white text-xs font-bold py-1.5 px-3 rounded shadow transition">Dùng mẫu này</button>
+                        <h3 class="font-bold text-gray-800">Định dạng 4: Soạn chuyên đề JSON (3 cột)</h3>
+                        <button onclick="useSample(4)" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-1.5 px-3 rounded shadow transition">Dùng mẫu này</button>
                     </div>
-                    <div class="p-4 text-sm text-gray-600 mb-0 bg-white">
-                        Cấu trúc gồm: <code>tieu_de</code>, <code>tieu_de_2</code>, <code>noi_dung</code>. Trong phần nội dung, các ý chính sẽ được xuống dòng và phân cách bằng ký hiệu <code>||</code>. Dữ liệu xuất ra Excel sẽ nằm ở 3 cột.
+                    <div class="p-4 bg-gray-50 text-sm">
+                        <p class="font-semibold mb-2">Lệnh Mẫu (Copy gửi AI):</p>
+                        <textarea class="w-full text-xs p-2 border rounded bg-white" rows="4" readonly>Tạo mã JSON chuyên đề Toán [CHỦ ĐỀ]. Cấu trúc 3 keys: "tieu_de", "tieu_de_2", "noi_dung". Trong key "noi_dung", bắt buộc mỗi ý chính phải được thêm ký hiệu || ở đầu dòng và ngăn cách nhau bởi ký tự xuống dòng \n. Công thức toán dùng $.</textarea>
                     </div>
-                    
-                    <!-- Prompt AI Dạng 4 -->
-                    <div class="bg-amber-50 p-4 border-y border-amber-200">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-sm font-semibold text-amber-800">🤖 Prompt mẫu cho AI (Sửa TÊN CHUYÊN ĐỀ)</span>
-                            <button onclick="copyPrompt(this, 'prompt-4')" class="bg-amber-200 text-amber-800 hover:bg-amber-300 text-xs font-bold py-1.5 px-3 rounded shadow-sm transition">📋 Copy Prompt</button>
-                        </div>
-                        <textarea id="prompt-4" class="w-full text-sm p-3 border border-amber-200 rounded-lg bg-white text-gray-700 resize-none outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" rows="5">Đóng vai một chuyên gia giáo dục. Hãy soạn nội dung chi tiết cho chuyên đề "[TÊN CHUYÊN ĐỀ]".
-Yêu cầu xuất ra MỘT MẢNG JSON duy nhất. Cấu trúc mỗi object: {"tieu_de": "...", "tieu_de_2": "...", "noi_dung": "..."}.
-Yêu cầu quan trọng: Trong trường "noi_dung", hãy gom các đoạn văn bản lại, mỗi ý chính bắt buộc phải xuống dòng và có ký hiệu || ở đầu mỗi ý (ví dụ: || Ý 1 \n|| Ý 2).
-Không kèm văn bản giải thích hay markdown code block thừa (như ```json).</textarea>
-                    </div>
-
-                    <pre class="bg-gray-800 text-green-400 p-4 text-xs overflow-x-auto rounded-b-xl max-h-60" id="sample-json-4">
+                    <pre class="bg-gray-800 text-gray-200 p-4 text-xs overflow-x-auto rounded-b-xl max-h-40" id="sample-json-4">
 [
   {
-    "tieu_de": "Chuyên đề 1: Khảo sát hàm số",
-    "tieu_de_2": "1. Tính đơn điệu của hàm số",
-    "noi_dung": "|| Cho hàm số y = f(x) có đạo hàm trên K.\n|| Nếu f'(x) > 0 với mọi x thuộc K thì hàm số đồng biến trên K.\n|| Nếu f'(x) < 0 với mọi x thuộc K thì hàm số nghịch biến trên K.\n|| Chú ý: Nếu f'(x) = 0 tại hữu hạn điểm thì định lý vẫn đúng."
-  },
-  {
-    "tieu_de": "Chuyên đề 1: Khảo sát hàm số",
-    "tieu_de_2": "2. Cực trị của hàm số",
-    "noi_dung": "|| Điểm cực đại là điểm mà đạo hàm đổi dấu từ dương sang âm.\n|| Điểm cực tiểu là điểm mà đạo hàm đổi dấu từ âm sang dương."
+    "tieu_de": "Hình học không gian",
+    "tieu_de_2": "Khái niệm Thể tích",
+    "noi_dung": "|| Thể tích khối chóp: $V = \\frac{1}{3}Bh$\n|| Thể tích lăng trụ: $V = Bh$"
   }
 ]</pre>
                 </div>
-
+                
                 <!-- Định dạng 5 -->
-                <div class="border rounded-xl overflow-hidden">
+                <div class="border rounded-xl overflow-hidden md:col-span-2">
                     <div class="bg-gray-100 px-4 py-3 flex justify-between items-center border-b">
                         <h3 class="font-bold text-gray-800">Định dạng 5: Nhập văn bản Markdown -> Tự động ra chuyên đề (Dạng 4)</h3>
                         <button onclick="useSample(5)" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-1.5 px-3 rounded shadow transition">Dùng mẫu này</button>
@@ -231,222 +136,152 @@ Không kèm văn bản giải thích hay markdown code block thừa (như ```jso
                         <ul class="list-disc pl-5 mt-1 space-y-1">
                             <li><strong>Cột 1:</strong> Bắt buộc dùng thẻ <code>## </code> (Tiêu đề chính).</li>
                             <li><strong>Cột 2:</strong> Bắt buộc dùng thẻ <code>### </code> ngay bên dưới (Mục con).</li>
-                            <li><strong>Cột 3:</strong> Viết nội dung ngay dưới thẻ <code>### </code>. Hệ thống tự quét sạch dấu <code>**</code>, <code>*</code>, <code>---</code> và thêm <code>||</code>.</li>
+                            <li><strong>Cột 3:</strong> Viết nội dung ngay dưới thẻ <code>### </code>. Hệ thống tự quét sạch dấu in đậm <code>**</code>, gạch ngang <code>---</code> (nhưng <strong>giữ lại 1 dấu <code>*</code></strong> để đánh dấu) và tự thêm ký hiệu <code>||</code>.</li>
                         </ul>
+                        <div class="mt-3">
+                            <p class="font-semibold mb-2">Lệnh Mẫu (Copy gửi AI):</p>
+                            <textarea class="w-full text-xs p-2 border rounded bg-gray-50" rows="3" readonly>Viết chuyên đề Toán về [CHỦ ĐỀ] bằng Markdown. Tiêu đề lớn dùng thẻ "## ", mục con bắt buộc dùng thẻ "### " ngay dưới tiêu đề lớn. Mọi nội dung, công thức diễn giải đặt ngay bên dưới "### ".</textarea>
+                        </div>
                     </div>
                     
                     <pre class="bg-gray-800 text-gray-200 p-4 text-xs overflow-x-auto rounded-b-xl max-h-60" id="sample-json-5">
 ## 1. Các ký hiệu cơ bản
-### 1.1 Ký hiệu chung
-
+### Các định nghĩa chung
 Cho tam giác $ABC$ có:
-
-* **Các góc:** $\widehat{A}, \widehat{B}, \widehat{C}$
-* **Độ dài các cạnh đối diện:** $a = BC, b = AC, c = AB$
-
-## 2. Công thức tính diện tích
-### 2.1 Công thức cơ bản
-
-Tùy vào dữ kiện bài toán, bạn có thể sử dụng:
-* Cơ bản: $S = \frac{1}{2}a h_a$
-* Theo 2 cạnh và góc xen giữa: $S = \frac{1}{2}ab \sin C$</pre>
+* Các góc: $\widehat{A}, \widehat{B}, \widehat{C}$
+**Chú ý quan trọng:** Cần nhớ kỹ
+Độ dài các cạnh đối diện: $a = BC, b = AC, c = AB$
+---
+## 2. Các định lý quan trọng
+### Định lý Cô-sin
+Tính cạnh khi biết 2 cạnh và góc xen giữa:
+$$a^2 = b^2 + c^2 - 2bc \cos A$$</pre>
                 </div>
+
             </div>
+        </div>
 
-            <!-- TAB: CÔNG CỤ -->
-            <div id="tab-tool" class="hidden space-y-6">
+        <!-- TAB CÔNG CỤ -->
+        <div id="converter-content" class="p-6 hidden">
+            <div class="space-y-5">
                 
-                <!-- Chọn định dạng -->
-                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <label class="block text-sm font-bold text-gray-700 mb-3">Chọn định dạng dữ liệu đầu vào:</label>
-                    <div class="flex flex-col sm:flex-row gap-4 flex-wrap">
-                        <label class="flex items-center cursor-pointer">
-                            <input type="radio" name="formatType" value="tuluan" class="w-5 h-5 text-emerald-600 border-gray-300 focus:ring-emerald-500">
-                            <span class="ml-2 text-gray-800">Dạng 1: Tự luận (3 Cột)</span>
-                        </label>
-                        <label class="flex items-center cursor-pointer">
-                            <input type="radio" name="formatType" value="tracnghiem" checked class="w-5 h-5 text-emerald-600 border-gray-300 focus:ring-emerald-500">
-                            <span class="ml-2 text-gray-800">Dạng 2: Trắc nghiệm (7 Cột)</span>
-                        </label>
-                        <label class="flex items-center cursor-pointer">
-                            <input type="radio" name="formatType" value="lythuyet" class="w-5 h-5 text-purple-600 border-gray-300 focus:ring-purple-500">
-                            <span class="ml-2 text-gray-800">Dạng 3: Lý thuyết (Nhiều cột)</span>
-                        </label>
-                        <label class="flex items-center cursor-pointer">
-                            <input type="radio" name="formatType" value="soanchuyende" class="w-5 h-5 text-pink-600 border-gray-300 focus:ring-pink-500">
-                            <span class="ml-2 text-gray-800">Dạng 4: Soạn chuyên đề (3 Cột)</span>
-                        </label>
-                        <label class="flex items-center cursor-pointer">
-                            <input type="radio" name="formatType" value="markdown_chuyende" class="w-5 h-5 text-indigo-600 border-gray-300 focus:ring-indigo-500">
-                            <span class="ml-2 text-gray-800">Dạng 5: Từ Markdown -> Chuyên đề</span>
-                        </label>
-                    </div>
+                <!-- Bảng điều khiển định dạng -->
+                <div class="bg-gray-50 p-4 rounded-xl border">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">1. Chọn định dạng dữ liệu bạn sắp nhập vào:</label>
+                    <select id="formatSelect" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition" onchange="handleFormatChange()">
+                        <option value="1">Định dạng 1: JSON Câu hỏi Tự luận (3 cột)</option>
+                        <option value="2">Định dạng 2: JSON Trắc nghiệm (7 cột)</option>
+                        <option value="3">Định dạng 3: JSON Lý thuyết (Động)</option>
+                        <option value="4">Định dạng 4: JSON Chuyên đề (3 cột có ||)</option>
+                        <option value="5">Định dạng 5: Văn bản MARKDOWN (Sẽ tự động bóc tách 3 cột)</option>
+                    </select>
                 </div>
 
-                <!-- Khung nhập JSON -->
+                <!-- Vùng nhập dữ liệu -->
                 <div>
                     <div class="flex justify-between items-end mb-2">
-                        <label id="inputLabel" for="jsonInput" class="block text-sm font-bold text-gray-700">Nhập mã JSON vào đây:</label>
-                        <div>
-                            <button id="convertMdBtn" onclick="previewMarkdownAsJson()" class="hidden text-xs text-indigo-600 hover:text-indigo-800 mr-3 font-semibold border border-indigo-200 px-2 py-1 rounded bg-indigo-50 transition">🔄 Chuyển sang JSON xem trước</button>
-                            <button onclick="document.getElementById('jsonInput').value = ''" class="text-xs text-red-500 hover:text-red-700">Xóa trắng</button>
-                        </div>
+                        <label class="block text-sm font-semibold text-gray-700">2. Dán nội dung (JSON hoặc Markdown) vào đây:</label>
+                        <button onclick="clearInput()" class="text-xs text-red-500 hover:text-red-700 font-medium">Xóa nội dung</button>
                     </div>
-                    <textarea 
-                        id="jsonInput" 
-                        rows="12" 
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none font-mono text-sm resize-y bg-gray-50"
-                        placeholder="Dán mã JSON của bạn vào đây..."
-                    ></textarea>
+                    <textarea id="jsonInput" class="w-full h-64 p-4 border rounded-xl font-mono text-sm focus:ring-2 focus:ring-indigo-500 outline-none shadow-inner" placeholder="Dán nội dung vào đây..."></textarea>
                 </div>
 
-                <!-- Tên file -->
-                <div>
-                    <label for="filenameInput" class="block text-sm font-bold text-gray-700 mb-2">Tên file Excel (không cần gõ .xlsx):</label>
-                    <input 
-                        type="text" 
-                        id="filenameInput" 
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-gray-50"
-                        placeholder="Vi_du: cau_hoi_toan_hoc"
-                        value="du_lieu_cau_hoi"
-                    >
-                </div>
+                <!-- Tên file và Nút hành động -->
+                <div class="bg-gray-50 p-4 rounded-xl border">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">3. Tên file Excel (không cần gõ .xlsx):</label>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <input type="text" id="fileName" class="flex-1 p-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" value="Du_Lieu_Toan_Hoc">
+                        
+                        <!-- Nút xem trước JSON cho định dạng 5 -->
+                        <button id="previewBtn" onclick="previewMarkdownToJSON()" class="hidden bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 px-4 rounded-lg shadow-md transition items-center justify-center">
+                            🔄 Chuyển sang JSON xem trước
+                        </button>
 
-                <!-- Thông báo lỗi -->
-                <div id="errorMessage" class="hidden bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded shadow-sm" role="alert">
-                    <div class="flex items-center">
-                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>
-                        <span class="block sm:inline font-medium" id="errorText"></span>
+                        <button onclick="exportExcel()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-lg shadow-md transition flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Xuất & Tải File Excel
+                        </button>
                     </div>
                 </div>
 
-                <!-- Nút Tải -->
-                <div class="flex justify-center pt-4">
-                    <button 
-                        onclick="exportToExcel()" 
-                        class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-10 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:-translate-y-1 focus:outline-none focus:ring-4 focus:ring-emerald-500 focus:ring-opacity-50 flex items-center gap-2"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        Xuất và Tải File Excel
-                    </button>
+                <!-- Vùng hiển thị lỗi hoặc kết quả xem trước -->
+                <div id="statusMessage" class="hidden p-4 rounded-xl text-sm font-medium"></div>
+
+                <div id="previewArea" class="hidden mt-4">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Kết quả JSON sau khi bóc tách (Có thể copy trực tiếp):</label>
+                    <textarea id="jsonPreviewOutput" class="w-full h-48 p-4 border rounded-xl font-mono text-xs bg-gray-800 text-green-400 outline-none shadow-inner" readonly></textarea>
                 </div>
+
             </div>
         </div>
     </div>
 
     <script>
-        // Khởi tạo tab mặc định
-        document.addEventListener('DOMContentLoaded', () => {
-            switchTab('guide');
-        });
+        // Hàm chuyển đổi tab
+        function switchTab(tab) {
+            const guideContent = document.getElementById('guide-content');
+            const converterContent = document.getElementById('converter-content');
+            const tabGuide = document.getElementById('tab-guide');
+            const tabConverter = document.getElementById('tab-converter');
 
-        // Hàm chuyển đổi giữa các tab
-        function switchTab(tabId) {
-            const guideTab = document.getElementById('tab-guide');
-            const toolTab = document.getElementById('tab-tool');
-            const guideBtn = document.getElementById('tabBtn-guide');
-            const toolBtn = document.getElementById('tabBtn-tool');
-
-            if (tabId === 'guide') {
-                guideTab.classList.remove('hidden');
-                toolTab.classList.add('hidden');
-                // Styling cho nút Đang chọn (Guide)
-                guideBtn.classList.replace('bg-emerald-700', 'bg-white');
-                guideBtn.classList.replace('text-emerald-100', 'text-emerald-700');
-                // Styling cho nút Không chọn (Tool)
-                toolBtn.classList.replace('bg-white', 'bg-emerald-700');
-                toolBtn.classList.replace('text-emerald-700', 'text-emerald-100');
+            if (tab === 'guide') {
+                guideContent.classList.remove('hidden');
+                converterContent.classList.add('hidden');
+                tabGuide.classList.replace('tab-inactive', 'tab-active');
+                tabConverter.classList.replace('tab-active', 'tab-inactive');
             } else {
-                guideTab.classList.add('hidden');
-                toolTab.classList.remove('hidden');
-                // Styling cho nút Đang chọn (Tool)
-                toolBtn.classList.replace('bg-emerald-700', 'bg-white');
-                toolBtn.classList.replace('text-emerald-100', 'text-emerald-700');
-                // Styling cho nút Không chọn (Guide)
-                guideBtn.classList.replace('bg-white', 'bg-emerald-700');
-                guideBtn.classList.replace('text-emerald-700', 'text-emerald-100');
+                guideContent.classList.add('hidden');
+                converterContent.classList.remove('hidden');
+                tabConverter.classList.replace('tab-inactive', 'tab-active');
+                tabGuide.classList.replace('tab-active', 'tab-inactive');
             }
-            
-            // Ẩn lỗi khi chuyển tab
-            document.getElementById('errorMessage').classList.add('hidden');
         }
 
-        // Lắng nghe sự kiện thay đổi radio để cập nhật giao diện (Label, Placeholder)
-        document.addEventListener('DOMContentLoaded', () => {
-            const formatRadios = document.querySelectorAll('input[name="formatType"]');
-            const inputLabel = document.getElementById('inputLabel');
-            const convertMdBtn = document.getElementById('convertMdBtn');
-            const jsonInput = document.getElementById('jsonInput');
-
-            formatRadios.forEach(radio => {
-                radio.addEventListener('change', (e) => {
-                    if (e.target.value === 'markdown_chuyende') {
-                        inputLabel.textContent = "Nhập văn bản Markdown vào đây:";
-                        jsonInput.placeholder = "Dán Markdown có chứa ## (Tiêu đề 1) và ### (Tiêu đề 2) vào đây...";
-                        convertMdBtn.classList.remove('hidden');
-                    } else {
-                        inputLabel.textContent = "Nhập mã JSON vào đây:";
-                        jsonInput.placeholder = "Dán mã JSON của bạn vào đây...";
-                        convertMdBtn.classList.add('hidden');
-                    }
-                });
-            });
-        });
-
-        // Hàm sử dụng dữ liệu mẫu từ tab Hướng Dẫn
+        // Hàm sao chép và chuyển sang tab công cụ
         function useSample(formatType) {
-            const jsonText = document.getElementById(`sample-json-${formatType}`).innerText;
-            document.getElementById('jsonInput').value = jsonText;
+            const sampleText = document.getElementById(`sample-json-${formatType}`).innerText;
             
-            // Tích chọn đúng radio button
-            const radioTựLuận = document.querySelector('input[value="tuluan"]');
-            const radioTrắcNghiệm = document.querySelector('input[value="tracnghiem"]');
-            const radioLyThuyet = document.querySelector('input[value="lythuyet"]');
-            const radioSoanChuyenDe = document.querySelector('input[value="soanchuyende"]');
-            const radioMarkdown = document.querySelector('input[value="markdown_chuyende"]');
+            // Chuyển tab
+            switchTab('converter');
             
-            if (formatType === 1) {
-                radioTựLuận.checked = true;
-                document.getElementById('filenameInput').value = "Du_Lieu_Tu_Luan";
-            } else if (formatType === 4) {
-                radioSoanChuyenDe.checked = true;
-                document.getElementById('filenameInput').value = "Du_Lieu_Chuyen_De";
-            } else if (formatType === 5) {
-                radioMarkdown.checked = true;
-                document.getElementById('filenameInput').value = "Du_Lieu_Tu_Markdown";
+            // Cập nhật giá trị vào dropdown và ô text
+            const selectElement = document.getElementById('formatSelect');
+            selectElement.value = formatType.toString();
+            handleFormatChange();
+            
+            document.getElementById('jsonInput').value = sampleText;
+            
+            // Reset thông báo
+            document.getElementById('statusMessage').classList.add('hidden');
+            document.getElementById('previewArea').classList.add('hidden');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Hàm xóa dữ liệu input
+        function clearInput() {
+            document.getElementById('jsonInput').value = '';
+            document.getElementById('statusMessage').classList.add('hidden');
+            document.getElementById('previewArea').classList.add('hidden');
+        }
+
+        // Hàm xử lý hiển thị nút Preview khi chọn Dạng 5
+        function handleFormatChange() {
+            const format = document.getElementById('formatSelect').value;
+            const previewBtn = document.getElementById('previewBtn');
+            const previewArea = document.getElementById('previewArea');
+            
+            if (format === '5') {
+                previewBtn.classList.remove('hidden');
+                previewBtn.classList.add('flex');
+            } else {
+                previewBtn.classList.add('hidden');
+                previewBtn.classList.remove('flex');
+                previewArea.classList.add('hidden');
             }
-            
-            // Kích hoạt event change thủ công để update UI (label, nút button)
-            const event = new Event('change');
-            document.querySelector(`input[name="formatType"]:checked`).dispatchEvent(event);
-
-            // Chuyển sang tab Công cụ
-            switchTab('tool');
         }
 
-        // Hàm sao chép Prompt cho AI
-        function copyPrompt(button, elementId) {
-            const el = document.getElementById(elementId);
-            el.select();
-            el.setSelectionRange(0, 99999); /* Dành cho thiết bị di động */
-            document.execCommand("copy");
-            
-            const originalText = button.innerHTML;
-            button.innerHTML = "✅ Đã Copy!";
-            button.classList.replace('bg-amber-200', 'bg-green-600');
-            button.classList.replace('text-amber-800', 'text-white');
-            button.classList.replace('hover:bg-amber-300', 'hover:bg-green-700');
-            
-            setTimeout(() => {
-                button.innerHTML = originalText;
-                button.classList.replace('bg-green-600', 'bg-amber-200');
-                button.classList.replace('text-white', 'text-amber-800');
-                button.classList.replace('hover:bg-green-700', 'hover:bg-amber-300');
-            }, 2000);
-        }
-
+        // Hàm phân tích Markdown sang JSON (Định dạng 4)
         function parseMarkdownToFormat4(mdText) {
             const lines = mdText.split('\n');
             const result = [];
@@ -459,13 +294,19 @@ Tùy vào dữ kiện bài toán, bạn có thể sử dụng:
                 const noiDung = currentLines
                     .map(line => {
                         let cleanLine = line.trim();
-                        // Xóa ký tự in đậm ** hoặc __
+                        // 1. Xóa ký tự in đậm ** hoặc __
                         cleanLine = cleanLine.replace(/\*\*|__/g, '');
-                        // Xóa ký tự bullet point (dấu * hoặc - nằm ở đầu dòng)
-                        cleanLine = cleanLine.replace(/^[\*\-]\s+/, '');
+                        // 2. Xóa các dòng kẻ ngang như ---, ***, ___
+                        if (/^[-_*]{3,}$/.test(cleanLine)) {
+                            return null; // Bỏ qua dòng này
+                        }
+                        // 3. Nếu dòng bắt đầu bằng dấu gạch ngang "- " thì xóa đi, 
+                        // NHƯNG nếu bắt đầu bằng "* " thì GIỮ LẠI (theo yêu cầu)
+                        cleanLine = cleanLine.replace(/^\-\s+/, '');
+                        
                         return cleanLine.trim();
                     })
-                    .filter(line => line !== '')
+                    .filter(line => line !== null && line !== '')
                     .map(line => '|| ' + line)
                     .join('\n');
 
@@ -482,196 +323,167 @@ Tùy vào dữ kiện bài toán, bạn có thể sử dụng:
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i].trim();
                 
-                // Bỏ qua dòng trống và các dòng kẻ ngang Markdown (---, ***, ___)
-                if (line === '' || line.match(/^(-{3,}|\*{3,}|_{3,})$/)) {
-                    continue;
-                }
-
                 if (line.startsWith('## ')) {
-                    saveCurrentBlock(); // Lưu block trước đó nếu có
-                    // Lấy tiêu đề và xóa luôn cả dấu ** nếu có
-                    currentTieuDe = line.substring(3).replace(/\*\*|__/g, '').trim();
-                    currentTieuDe2 = ''; // Reset tiêu đề 2
-                } else if (line.startsWith('### ')) {
-                    saveCurrentBlock(); // Lưu block trước đó nếu có
-                    // Lấy tiêu đề và xóa luôn cả dấu ** nếu có
-                    currentTieuDe2 = line.substring(4).replace(/\*\*|__/g, '').trim();
-                } else {
-                    currentLines.push(line);
+                    // Cột 1
+                    saveCurrentBlock();
+                    // Loại bỏ các ký tự ** nếu có trên tiêu đề
+                    currentTieuDe = line.substring(3).trim().replace(/\*\*|__/g, '');
+                    currentTieuDe2 = ''; 
+                } 
+                else if (line.startsWith('### ')) {
+                    // Cột 2
+                    saveCurrentBlock();
+                    // Loại bỏ các ký tự ** nếu có trên tiêu đề
+                    currentTieuDe2 = line.substring(4).trim().replace(/\*\*|__/g, '');
+                } 
+                else if (line !== '') {
+                    // Cột 3 (Nội dung)
+                    if (currentTieuDe || currentTieuDe2) {
+                        currentLines.push(line);
+                    }
                 }
             }
             saveCurrentBlock(); // Lưu block cuối cùng
+            
             return result;
         }
 
-        // Hàm giúp người dùng xem trước JSON từ Markdown
-        function previewMarkdownAsJson() {
-            const input = document.getElementById('jsonInput');
-            if (!input.value.trim()) return;
-            
-            const parsedData = parseMarkdownToFormat4(input.value);
-            input.value = JSON.stringify(parsedData, null, 2);
-            
-            // Sau khi chuyển sang JSON, tự động chuyển radio sang Dạng 4
-            const radioSoanChuyenDe = document.querySelector('input[value="soanchuyende"]');
-            radioSoanChuyenDe.checked = true;
-            radioSoanChuyenDe.dispatchEvent(new Event('change'));
-        }
+        // Hàm xem trước Markdown thành JSON
+        function previewMarkdownToJSON() {
+            const textInput = document.getElementById('jsonInput').value.trim();
+            const statusDiv = document.getElementById('statusMessage');
+            const previewArea = document.getElementById('previewArea');
+            const previewOutput = document.getElementById('jsonPreviewOutput');
 
-        function exportToExcel() {
-            const jsonInput = document.getElementById('jsonInput').value;
-            const filenameInput = document.getElementById('filenameInput').value.trim();
-            const errorContainer = document.getElementById('errorMessage');
-            const errorText = document.getElementById('errorText');
-            
-            // Lấy định dạng được chọn
-            let selectedFormat = document.querySelector('input[name="formatType"]:checked').value;
-
-            // Reset thông báo lỗi
-            errorContainer.classList.add('hidden');
-            
-            if (!jsonInput) {
-                showError('Vui lòng nhập mã JSON trước khi tải.');
+            if (!textInput) {
+                showStatus('Vui lòng nhập văn bản Markdown vào khung.', 'error');
                 return;
             }
 
-            let filename = filenameInput || "Danh_sach_cau_hoi";
-            if (!filename.endsWith('.xlsx')) filename += '.xlsx';
-
             try {
-                let data = [];
-                let excelFormat = selectedFormat;
-
-                if (selectedFormat === 'markdown_chuyende') {
-                    // Nếu đang ở dạng Markdown, tự động dịch sang JSON mảng trước
-                    data = parseMarkdownToFormat4(jsonInput);
-                    if (data.length === 0) {
-                        showError('Không tìm thấy nội dung Markdown hợp lệ hoặc thiếu Tiêu đề. Vui lòng kiểm tra lại cấu trúc.');
-                        return;
-                    }
-                    excelFormat = 'soanchuyende'; // Kế thừa toàn bộ logic xuất Excel của Dạng 4
-                } else {
-                    // 1. Phân tích chuỗi JSON nếu không phải Markdown
-                    data = JSON.parse(jsonInput);
-
-                    if (!Array.isArray(data)) {
-                         showError('Định dạng JSON không hợp lệ. Vui lòng cung cấp một mảng các đối tượng (Array). [ ... ]');
-                         return;
-                    }
-                    if (data.length === 0) {
-                         showError('Mảng JSON trống. Không có dữ liệu để xuất.');
-                         return;
-                    }
+                const jsonObj = parseMarkdownToFormat4(textInput);
+                if (jsonObj.length === 0) {
+                    showStatus('Không tìm thấy cấu trúc ## (Tiêu đề 1) hoặc ### (Tiêu đề 2). Hãy kiểm tra lại Markdown.', 'error');
+                    previewArea.classList.add('hidden');
+                    return;
                 }
-
-                // 2. Định dạng dữ liệu theo lựa chọn
-                let excelData = [];
-                let wsCols = [];
-
-                if (excelFormat === 'tuluan') {
-                    // Dạng 1: Tự luận (3 cột) - KHÔNG TIÊU ĐỀ
-                    excelData = data.map(item => [
-                        item.cau_hoi || '', 
-                        item.dap_an || '', 
-                        item.goi_y || ''
-                    ]);
-                    wsCols = [{wch: 50}, {wch: 25}, {wch: 40}]; // Độ rộng cột
-
-                } else if (selectedFormat === 'tracnghiem') {
-                    // Dạng 2: Trắc nghiệm (7 cột) - KHÔNG TIÊU ĐỀ
-                    excelData = data.map(item => [
-                        item.cau_hoi || '', 
-                        item.phuong_an_1 || '', 
-                        item.phuong_an_2 || '', 
-                        item.phuong_an_3 || '', 
-                        item.phuong_an_4 || '', 
-                        item.dap_an_dung || '',
-                        item.loi_giai || ''
-                    ]);
-                    wsCols = [
-                        {wch: 50}, // Cột 1: Câu hỏi
-                        {wch: 20}, // Cột 2-5: PA 1-4
-                        {wch: 20}, 
-                        {wch: 20}, 
-                        {wch: 20}, 
-                        {wch: 15}, // Cột 6: Đáp án đúng
-                        {wch: 40}  // Cột 7: Lời giải
-                    ];
-                } else if (selectedFormat === 'lythuyet') {
-                    // Dạng 3: Lý thuyết (Tự động mở rộng theo cột)
-                    
-                    // 1. Quét toàn bộ dữ liệu để tìm ra số thứ tự cột lý thuyết lớn nhất
-                    let maxLyThuyetIndex = 0;
-                    data.forEach(item => {
-                        Object.keys(item).forEach(key => {
-                            if (key.startsWith('ly_thuyet_')) {
-                                // Tách lấy con số đằng sau chữ 'ly_thuyet_'
-                                let index = parseInt(key.replace('ly_thuyet_', ''));
-                                if (!isNaN(index) && index > maxLyThuyetIndex) {
-                                    maxLyThuyetIndex = index;
-                                }
-                            }
-                        });
-                    });
-
-                    // Cân bằng nếu không có trường lý thuyết nào
-                    if (maxLyThuyetIndex === 0) maxLyThuyetIndex = 1; 
-
-                    // 2. Chuyển đổi dữ liệu
-                    excelData = data.map(item => {
-                        let row = [
-                            item.ten_de_muc || '',
-                            item.muc_con || ''
-                        ];
-                        // Lấy tuần tự từ ly_thuyet_1 tới ly_thuyet_ lớn nhất để tránh mất cột do nhảy cóc
-                        for (let i = 1; i <= maxLyThuyetIndex; i++) {
-                            row.push(item['ly_thuyet_' + i] || '');
-                        }
-                        return row;
-                    });
-
-                    // 3. Khởi tạo độ rộng cột
-                    wsCols = [
-                        {wch: 30}, // Cột 1: Tên đề mục
-                        {wch: 30}  // Cột 2: Mục con
-                    ];
-                    // Thêm độ rộng cho tất cả các cột lý thuyết
-                    for (let i = 0; i < maxLyThuyetIndex; i++) {
-                        wsCols.push({wch: 40});
-                    }
-                } else if (excelFormat === 'soanchuyende') {
-                    // Dạng 4 & Dạng 5: Soạn chuyên đề (3 cột)
-                    excelData = data.map(item => [
-                        item.tieu_de || '', 
-                        item.tieu_de_2 || '', 
-                        item.noi_dung || ''
-                    ]);
-                    wsCols = [{wch: 35}, {wch: 35}, {wch: 80}]; // Cột nội dung rộng hơn
-                }
-
-                // 3. Tạo Workbook & Worksheet (Sử dụng hàm aoa_to_sheet để xuất mảng thô không tiêu đề)
-                const ws = XLSX.utils.aoa_to_sheet(excelData);
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "DanhSach");
-
-                // Áp dụng độ rộng cột cho đẹp
-                ws['!cols'] = wsCols;
-
-                // 4. Khởi chạy tải xuống
-                XLSX.writeFile(wb, filename);
-
+                previewOutput.value = JSON.stringify(jsonObj, null, 2);
+                previewArea.classList.remove('hidden');
+                showStatus('Đã bóc tách thành công! Bạn có thể xuất Excel ngay.', 'success');
             } catch (error) {
-                console.error("JSON Error:", error);
-                showError('Mã JSON bị sai cú pháp. Vui lòng kiểm tra lại (dấu ngoặc, dấu phẩy). Chi tiết lỗi: ' + error.message);
+                showStatus('Lỗi khi bóc tách: ' + error.message, 'error');
             }
         }
 
-        // Hiển thị thông báo lỗi
-        function showError(message) {
-            const errorContainer = document.getElementById('errorMessage');
-            const errorText = document.getElementById('errorText');
-            errorText.textContent = message;
-            errorContainer.classList.remove('hidden');
+        // Hàm hiển thị thông báo
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.textContent = message;
+            statusDiv.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700');
+            
+            if (type === 'error') {
+                statusDiv.classList.add('bg-red-100', 'text-red-700');
+            } else {
+                statusDiv.classList.add('bg-green-100', 'text-green-700');
+            }
+        }
+
+        // Hàm chính: Xuất Excel không cần dòng Tiêu đề
+        function exportExcel() {
+            const formatType = document.getElementById('formatSelect').value;
+            let rawData = document.getElementById('jsonInput').value.trim();
+            let fileName = document.getElementById('fileName').value.trim();
+            
+            if (!fileName) fileName = "Du_Lieu_Toan_Hoc";
+            if (!rawData) {
+                showStatus('Vui lòng dán dữ liệu vào khung trước khi xuất file!', 'error');
+                return;
+            }
+
+            let dataObj = [];
+
+            try {
+                // Xử lý dữ liệu đầu vào
+                if (formatType === '5') {
+                    // Xử lý Markdown -> JSON nội bộ
+                    dataObj = parseMarkdownToFormat4(rawData);
+                    if(dataObj.length === 0) throw new Error("Văn bản Markdown không đúng chuẩn (thiếu thẻ ## hoặc ###).");
+                } else {
+                    // Xử lý JSON thuần
+                    dataObj = JSON.parse(rawData);
+                    if (!Array.isArray(dataObj)) throw new Error("Dữ liệu JSON phải là một mảng (bắt đầu bằng [ và kết thúc bằng ]).");
+                }
+
+                // Chuyển đổi thành Array of Arrays (AoA) để KHÔNG CÓ Header trong Excel
+                let aoa = [];
+
+                dataObj.forEach((item, index) => {
+                    let row = [];
+                    
+                    if (formatType === '1') {
+                        // Dạng 1: Tự luận
+                        row = [item.cau_hoi || "", item.dap_an || "", item.goi_y || ""];
+                    } 
+                    else if (formatType === '2') {
+                        // Dạng 2: Trắc nghiệm
+                        row = [
+                            item.cau_hoi || "", 
+                            item.phuong_an_1 || "", 
+                            item.phuong_an_2 || "", 
+                            item.phuong_an_3 || "", 
+                            item.phuong_an_4 || "", 
+                            item.dap_an_dung || "", 
+                            item.loi_giai || ""
+                        ];
+                    }
+                    else if (formatType === '3') {
+                        // Dạng 3: Lý thuyết (Động)
+                        row = [item.tieu_de || "", item.muc_con || ""];
+                        
+                        // Trích xuất các key ly_thuyet theo thứ tự
+                        const keys = Object.keys(item);
+                        const lyThuyetKeys = keys.filter(k => k.startsWith('ly_thuyet_'));
+                        
+                        // Sắp xếp các key để đảm bảo ly_thuyet_1 đứng trước ly_thuyet_2 ...
+                        lyThuyetKeys.sort((a, b) => {
+                            let numA = parseInt(a.split('_')[2]) || 0;
+                            let numB = parseInt(b.split('_')[2]) || 0;
+                            return numA - numB;
+                        });
+
+                        lyThuyetKeys.forEach(key => {
+                            row.push(item[key]);
+                        });
+                    }
+                    else if (formatType === '4' || formatType === '5') {
+                        // Dạng 4 & 5: Chuyên đề JSON & Markdown
+                        row = [item.tieu_de || "", item.tieu_de_2 || "", item.noi_dung || ""];
+                    }
+                    
+                    aoa.push(row);
+                });
+
+                // Khởi tạo WorkBook và WorkSheet từ AoA
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+                // Tinh chỉnh độ rộng cột (tuỳ chọn)
+                const wscols = formatType === '2' ? 
+                    [{wch: 40}, {wch: 20}, {wch: 20}, {wch: 20}, {wch: 20}, {wch: 10}, {wch: 40}] : 
+                    [{wch: 30}, {wch: 30}, {wch: 50}];
+                ws['!cols'] = wscols;
+
+                // Thêm worksheet vào workbook
+                XLSX.utils.book_append_sheet(wb, ws, "DanhSach");
+
+                // Lưu file
+                XLSX.writeFile(wb, fileName + ".xlsx");
+                
+                showStatus('Xuất file Excel thành công!', 'success');
+
+            } catch (error) {
+                showStatus('Lỗi: ' + error.message, 'error');
+            }
         }
     </script>
 </body>
