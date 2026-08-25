@@ -227,29 +227,29 @@ Không kèm văn bản giải thích hay markdown code block thừa (như ```jso
                         <button onclick="useSample(5)" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-1.5 px-3 rounded shadow transition">Dùng mẫu này</button>
                     </div>
                     <div class="p-4 text-sm text-gray-600 mb-0 bg-white">
-                        Hệ thống sẽ tự động quét các thẻ Heading 2 (<code>## </code>) làm Tiêu đề 1, Heading 3 (<code>### </code>) làm Tiêu đề 2. Toàn bộ nội dung chữ, công thức sẽ được tự động gom nhóm, loại bỏ dòng trắng thừa, xuống dòng và thêm ký hiệu <code>||</code> ở đầu mỗi dòng.
+                        <strong>Quy tắc viết Markdown chuẩn để ra đủ 3 cột:</strong>
+                        <ul class="list-disc pl-5 mt-1 space-y-1">
+                            <li><strong>Cột 1:</strong> Bắt buộc dùng thẻ <code>## </code> (Tiêu đề chính).</li>
+                            <li><strong>Cột 2:</strong> Bắt buộc dùng thẻ <code>### </code> ngay bên dưới (Mục con).</li>
+                            <li><strong>Cột 3:</strong> Viết nội dung ngay dưới thẻ <code>### </code>. Hệ thống tự quét sạch dấu <code>**</code>, <code>*</code>, <code>---</code> và thêm <code>||</code>.</li>
+                        </ul>
                     </div>
                     
                     <pre class="bg-gray-800 text-gray-200 p-4 text-xs overflow-x-auto rounded-b-xl max-h-60" id="sample-json-5">
 ## 1. Các ký hiệu cơ bản
+### 1.1 Ký hiệu chung
 
 Cho tam giác $ABC$ có:
 
 * **Các góc:** $\widehat{A}, \widehat{B}, \widehat{C}$
 * **Độ dài các cạnh đối diện:** $a = BC, b = AC, c = AB$
-* **Nửa chu vi:** $p = \frac{a + b + c}{2}$
 
----
+## 2. Công thức tính diện tích
+### 2.1 Công thức cơ bản
 
-## 4. Ví dụ minh họa
-
-### Ví dụ 1: Ứng dụng Định lý Cô-sin và diện tích
-
-Cho tam giác $ABC$ có $b = 8, c = 5$ và góc $\widehat{A} = 60^\circ$. Tính cạnh $a$ và diện tích $S$ của tam giác.
-
-**Giải:**
-Áp dụng Định lý Cô-sin để tính cạnh $a$:
-$$a^2 = b^2 + c^2 - 2bc \cos A$$</pre>
+Tùy vào dữ kiện bài toán, bạn có thể sử dụng:
+* Cơ bản: $S = \frac{1}{2}a h_a$
+* Theo 2 cạnh và góc xen giữa: $S = \frac{1}{2}ab \sin C$</pre>
                 </div>
             </div>
 
