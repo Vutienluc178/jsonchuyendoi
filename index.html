@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chuyển Đổi JSON sang Excel</title>
+    <!-- Kéo thư viện Tailwind CSS để styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Thư viện SheetJS để xuất file Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: #f0fdf4; /* Nền xanh nhạt nhẹ nhàng */
+        }
+        /* Tùy chỉnh thanh cuộn cho đẹp hơn */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8; 
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-start justify-center p-4 md:p-8">
+
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden">
+        
+        <!-- Header & Tabs -->
+        <div class="bg-emerald-600 p-6 text-white text-center relative">
+            <h1 class="text-3xl font-bold mb-2">Công Cụ Xuất JSON ra Excel</h1>
+            <p class="text-emerald-100 text-sm">Hỗ trợ 3 định dạng: Tự Luận, Trắc Nghiệm & Lý Thuyết</p>
+            
+            <div class="flex justify-center mt-6 gap-2">
+                <button onclick="switchTab('guide')" id="tabBtn-guide" class="px-6 py-2 bg-white text-emerald-700 font-semibold rounded-t-lg transition-colors border-b-4 border-transparent hover:bg-emerald-50">
+                    📖 Menu Hướng Dẫn
+                </button>
+                <button onclick="switchTab('tool')" id="tabBtn-tool" class="px-6 py-2 bg-emerald-700 text-emerald-100 font-semibold rounded-t-lg transition-colors border-b-4 border-transparent hover:bg-emerald-800">
+                    ⚙️ Công Cụ Chuyển Đổi
+                </button>
+            </div>
+        </div>
+
+        <div class="p-6 md:p-8">
+            
+            <!-- TAB: HƯỚNG DẪN -->
+            <div id="tab-guide" class="space-y-8">
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r">
+                    <p class="text-sm text-blue-800">
+                        <strong>Lưu ý:</strong> Dưới đây là 2 định dạng JSON được hỗ trợ. Bạn có thể nhấn nút <strong>"Dùng mẫu này"</strong> để chuyển ngay dữ liệu sang công cụ và xuất thử.
+                    </p>
+                </div>
+
+                <!-- Định dạng 1 -->
+                <div class="border rounded-xl overflow-hidden">
+                    <div class="bg-gray-100 px-4 py-3 flex justify-between items-center border-b">
+                        <h3 class="font-bold text-gray-800">Định dạng 1: Tự luận (3 cột)</h3>
+                        <button onclick="useSample(1)" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1.5 px-3 rounded shadow transition">Dùng mẫu này</button>
+                    </div>
+                    <div class="p-4 text-sm text-gray-600 mb-0 bg-white">
+                        Cấu trúc gồm: <code>cau_hoi</code>, <code>dap_an</code>, <code>goi_y</code>. Dữ liệu xuất ra Excel sẽ nằm ở 3 cột (không có tiêu đề).
+                    </div>
+                    
+                    <!-- Prompt AI Dạng 1 -->
+                    <div class="bg-amber-50 p-4 border-y border-amber-200">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-semibold text-amber-800">🤖 Prompt mẫu cho AI (Sửa SỐ LƯỢNG và TÊN CHỦ ĐỀ)</span>
+                            <button onclick="copyPrompt(this, 'prompt-1')" class="bg-amber-200 text-amber-800 hover:bg-amber-300 text-xs font-bold py-1.5 px-3 rounded shadow-sm transition">📋 Copy Prompt</button>
+                        </div>
+                        <textarea id="prompt-1" class="w-full text-sm p-3 border border-amber-200 rounded-lg bg-white text-gray-700 resize-none outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" rows="5">Đóng vai một giáo viên Toán xuất sắc có 20 năm kinh nghiệm. Hãy tạo [SỐ LƯỢNG] câu hỏi tự luận môn Toán về chủ đề "[TÊN CHỦ ĐỀ]".
+Yêu cầu xuất ra MỘT MẢNG JSON duy nhất, không kèm văn bản giải thích hay markdown code block thừa (như ```json).
+Cấu trúc mỗi object: {"cau_hoi": "...", "dap_an": "...", "goi_y": "..."}.
+Định dạng công thức toán học bằng LaTeX bọc trong dấu $ (ví dụ: $x^2 + 1$).</textarea>
+                    </div>
+
+                    <pre class="bg-gray-800 text-green-400 p-4 text-xs overflow-x-auto rounded-b-xl max-h-60" id="sample-json-1">
+[
+  {
+    "cau_hoi": "Một tam giác vuông có độ dài hai cạnh góc vuông lần lượt là $3\\text{ cm}$ và $4\\text{ cm}$. Tính diện tích của tam giác vuông đó.",
+    "dap_an": "$6\\text{ cm}^2$",
+    "goi_y": "Áp dụng công thức $S = \\frac{1}{2}ab$, trong đó $a$ và $b$ là độ dài hai cạnh góc vuông."
+  },
+  {
+    "cau_hoi": "Cho một tam giác vuông có cạnh huyền dài $13\\text{ cm}$ và một cạnh góc vuông dài $5\\text{ cm}$. Diện tích của tam giác vuông này là bao nhiêu?",
+    "dap_an": "$30\\text{ cm}^2$",
+    "goi_y": "Bước 1: Sử dụng định lý Pythagore ($a^2 + b^2 = c^2$) để tìm độ dài cạnh góc vuông còn lại. Bước 2: Tính diện tích bằng tích hai cạnh góc vuông chia đôi."
+  }
+]</pre>
+                </div>
+
+                <!-- Định dạng 2 -->
+                <div class="border rounded-xl overflow-hidden">
+                    <div class="bg-gray-100 px-4 py-3 flex justify-between items-center border-b">
+                        <h3 class="font-bold text-gray-800">Định dạng 2: Trắc nghiệm (7 cột)</h3>
+                        <button onclick="useSample(2)" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-1.5 px-3 rounded shadow transition">Dùng mẫu này</button>
+                    </div>
+                    <div class="p-4 text-sm text-gray-600 mb-0 bg-white">
+                        Cấu trúc gồm: <code>cau_hoi</code>, <code>phuong_an_1</code> đến <code>4</code>, <code>dap_an_dung</code> (số), <code>loi_giai</code>. Dữ liệu xuất ra Excel sẽ nằm ở 7 cột (không có tiêu đề).
+                    </div>
+                    
+                    <!-- Prompt AI Dạng 2 -->
+                    <div class="bg-amber-50 p-4 border-y border-amber-200">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-semibold text-amber-800">🤖 Prompt mẫu cho AI (Sửa SỐ LƯỢNG và TÊN CHỦ ĐỀ)</span>
+                            <button onclick="copyPrompt(this, 'prompt-2')" class="bg-amber-200 text-amber-800 hover:bg-amber-300 text-xs font-bold py-1.5 px-3 rounded shadow-sm transition">📋 Copy Prompt</button>
+                        </div>
+                        <textarea id="prompt-2" class="w-full text-sm p-3 border border-amber-200 rounded-lg bg-white text-gray-700 resize-none outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" rows="5">Đóng vai một giáo viên Toán xuất sắc có 20 năm kinh nghiệm. Hãy tạo [SỐ LƯỢNG] câu hỏi trắc nghiệm môn Toán về chủ đề "[TÊN CHỦ ĐỀ]".
+Yêu cầu xuất ra MỘT MẢNG JSON duy nhất, không kèm văn bản giải thích hay markdown code block thừa (như ```json).
+Cấu trúc mỗi object: {"cau_hoi": "...", "phuong_an_1": "...", "phuong_an_2": "...", "phuong_an_3": "...", "phuong_an_4": "...", "dap_an_dung": <số nguyên từ 1 đến 4>, "loi_giai": "..."}.
+Định dạng công thức toán học bằng LaTeX bọc trong dấu $ (ví dụ: $x^2 + 1$).</textarea>
+                    </div>
+
+                    <pre class="bg-gray-800 text-green-400 p-4 text-xs overflow-x-auto rounded-b-xl max-h-60" id="sample-json-2">
+[
+  {
+    "cau_hoi": "Một tam giác vuông có độ dài hai cạnh góc vuông lần lượt là $3\\text{ cm}$ và $4\\text{ cm}$. Tính diện tích của tam giác vuông đó.",
+    "phuong_an_1": "$6\\text{ cm}^2$",
+    "phuong_an_2": "$12\\text{ cm}^2$",
+    "phuong_an_3": "$5\\text{ cm}^2$",
+    "phuong_an_4": "$7\\text{ cm}^2$",
+    "dap_an_dung": 1,
+    "loi_giai": "Áp dụng công thức $S = \\frac{1}{2}ab = \\frac{1}{2} \\cdot 3 \\cdot 4 = 6 \\text{ cm}^2$."
+  },
+  {
+    "cau_hoi": "Cho một tam giác vuông có cạnh huyền dài $13\\text{ cm}$ và một cạnh góc vuông dài $5\\text{ cm}$. Diện tích của tam giác vuông này là bao nhiêu?",
+    "phuong_an_1": "$65\\text{ cm}^2$",
+    "phuong_an_2": "$32.5\\text{ cm}^2$",
+    "phuong_an_3": "$30\\text{ cm}^2$",
+    "phuong_an_4": "$60\\text{ cm}^2$",
+    "dap_an_dung": 3,
+    "loi_giai": "Cạnh góc vuông còn lại: $\\sqrt{13^2 - 5^2} = 12\\text{ cm}$. Diện tích: $\\frac{1}{2} \\cdot 5 \\cdot 12 = 30 \\text{ cm}^2$."
+  }
+]</pre>
+                </div>
+
+                <!-- Định dạng 3 -->
+                <div class="border rounded-xl overflow-hidden">
+                    <div class="bg-gray-100 px-4 py-3 flex justify-between items-center border-b">
+                        <h3 class="font-bold text-gray-800">Định dạng 3: Lý thuyết (Tự động mở rộng cột)</h3>
+                        <button onclick="useSample(3)" class="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold py-1.5 px-3 rounded shadow transition">Dùng mẫu này</button>
+                    </div>
+                    <div class="p-4 text-sm text-gray-600 mb-0 bg-white">
+                        Cấu trúc gồm: <code>ten_de_muc</code>, <code>muc_con</code>, và các cột <code>ly_thuyet_1</code>, <code>ly_thuyet_2</code>, <code>ly_thuyet_3</code>... (số lượng tuỳ ý). Ứng dụng sẽ tự động phân bổ thành bao nhiêu cột Excel tương ứng mà không bị giới hạn.
+                    </div>
+                    
+                    <!-- Prompt AI Dạng 3 -->
+                    <div class="bg-amber-50 p-4 border-y border-amber-200">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-semibold text-amber-800">🤖 Prompt mẫu cho AI (Sửa SỐ LƯỢNG và TÊN CHỦ ĐỀ)</span>
+                            <button onclick="copyPrompt(this, 'prompt-3')" class="bg-amber-200 text-amber-800 hover:bg-amber-300 text-xs font-bold py-1.5 px-3 rounded shadow-sm transition">📋 Copy Prompt</button>
+                        </div>
+                        <textarea id="prompt-3" class="w-full text-sm p-3 border border-amber-200 rounded-lg bg-white text-gray-700 resize-none outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" rows="5">Đóng vai một giáo viên Toán xuất sắc có 20 năm kinh nghiệm. Hãy tổng hợp lý thuyết trọng tâm về chủ đề "[TÊN CHỦ ĐỀ]" và chia thành [SỐ LƯỢNG] mục con.
+Yêu cầu xuất ra MỘT MẢNG JSON duy nhất, không kèm văn bản giải thích hay markdown code block thừa (như ```json).
+Cấu trúc mỗi object: {"ten_de_muc": "...", "muc_con": "...", "ly_thuyet_1": "...", "ly_thuyet_2": "..."}. Có thể tự tăng số lượng key "ly_thuyet_n" lên 3, 4, 5... tùy vào độ dài của lý thuyết.
+Định dạng công thức toán học bằng LaTeX bọc trong dấu $ (ví dụ: $x^2 + 1$).</textarea>
+                    </div>
+
+                    <pre class="bg-gray-800 text-green-400 p-4 text-xs overflow-x-auto rounded-b-xl max-h-60" id="sample-json-3">
+[
+  {
+    "ten_de_muc": "Chương 1: Khối đa diện",
+    "muc_con": "1. Khái niệm về khối đa diện",
+    "ly_thuyet_1": "Khối đa diện là phần không gian được giới hạn bởi một hình đa diện.",
+    "ly_thuyet_2": "Mỗi đa giác gọi là một mặt của khối đa diện.",
+    "ly_thuyet_3": "Các đỉnh, cạnh của đa giác lần lượt gọi là đỉnh, cạnh của đa diện."
+  },
+  {
+    "ten_de_muc": "Chương 1: Khối đa diện",
+    "muc_con": "2. Khối đa diện lồi",
+    "ly_thuyet_1": "Khối đa diện (H) được gọi là khối đa diện lồi nếu đoạn thẳng nối hai điểm bất kì của (H) luôn thuộc (H).",
+    "ly_thuyet_2": "Khối chóp, khối lăng trụ luôn là các khối đa diện lồi.",
+    "ly_thuyet_4": "Lưu ý: Ví dụ cột lý thuyết số 3 bị thiếu, hệ thống vẫn xếp mục này vào đúng cột số 4 (Lý thuyết 4)."
+  }
+]</pre>
+                </div>
+            </div>
+
+            <!-- TAB: CÔNG CỤ -->
+            <div id="tab-tool" class="hidden space-y-6">
+                
+                <!-- Chọn định dạng -->
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <label class="block text-sm font-bold text-gray-700 mb-3">Chọn định dạng dữ liệu đầu vào:</label>
+                    <div class="flex flex-col sm:flex-row gap-4 flex-wrap">
+                        <label class="flex items-center cursor-pointer">
+                            <input type="radio" name="formatType" value="tuluan" class="w-5 h-5 text-emerald-600 border-gray-300 focus:ring-emerald-500">
+                            <span class="ml-2 text-gray-800">Dạng 1: Tự luận (3 Cột)</span>
+                        </label>
+                        <label class="flex items-center cursor-pointer">
+                            <input type="radio" name="formatType" value="tracnghiem" checked class="w-5 h-5 text-emerald-600 border-gray-300 focus:ring-emerald-500">
+                            <span class="ml-2 text-gray-800">Dạng 2: Trắc nghiệm (7 Cột)</span>
+                        </label>
+                        <label class="flex items-center cursor-pointer">
+                            <input type="radio" name="formatType" value="lythuyet" class="w-5 h-5 text-purple-600 border-gray-300 focus:ring-purple-500">
+                            <span class="ml-2 text-gray-800">Dạng 3: Lý thuyết (Nhiều cột)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Khung nhập JSON -->
+                <div>
+                    <div class="flex justify-between items-end mb-2">
+                        <label for="jsonInput" class="block text-sm font-bold text-gray-700">Nhập mã JSON vào đây:</label>
+                        <button onclick="document.getElementById('jsonInput').value = ''" class="text-xs text-red-500 hover:text-red-700">Xóa trắng</button>
+                    </div>
+                    <textarea 
+                        id="jsonInput" 
+                        rows="12" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none font-mono text-sm resize-y bg-gray-50"
+                        placeholder="Dán mã JSON của bạn vào đây..."
+                    ></textarea>
+                </div>
+
+                <!-- Tên file -->
+                <div>
+                    <label for="filenameInput" class="block text-sm font-bold text-gray-700 mb-2">Tên file Excel (không cần gõ .xlsx):</label>
+                    <input 
+                        type="text" 
+                        id="filenameInput" 
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-gray-50"
+                        placeholder="Vi_du: cau_hoi_toan_hoc"
+                        value="du_lieu_cau_hoi"
+                    >
+                </div>
+
+                <!-- Thông báo lỗi -->
+                <div id="errorMessage" class="hidden bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded shadow-sm" role="alert">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>
+                        <span class="block sm:inline font-medium" id="errorText"></span>
+                    </div>
+                </div>
+
+                <!-- Nút Tải -->
+                <div class="flex justify-center pt-4">
+                    <button 
+                        onclick="exportToExcel()" 
+                        class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-10 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:-translate-y-1 focus:outline-none focus:ring-4 focus:ring-emerald-500 focus:ring-opacity-50 flex items-center gap-2"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Xuất và Tải File Excel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Khởi tạo tab mặc định
+        document.addEventListener('DOMContentLoaded', () => {
+            switchTab('guide');
+        });
+
+        // Hàm chuyển đổi giữa các tab
+        function switchTab(tabId) {
+            const guideTab = document.getElementById('tab-guide');
+            const toolTab = document.getElementById('tab-tool');
+            const guideBtn = document.getElementById('tabBtn-guide');
+            const toolBtn = document.getElementById('tabBtn-tool');
+
+            if (tabId === 'guide') {
+                guideTab.classList.remove('hidden');
+                toolTab.classList.add('hidden');
+                // Styling cho nút Đang chọn (Guide)
+                guideBtn.classList.replace('bg-emerald-700', 'bg-white');
+                guideBtn.classList.replace('text-emerald-100', 'text-emerald-700');
+                // Styling cho nút Không chọn (Tool)
+                toolBtn.classList.replace('bg-white', 'bg-emerald-700');
+                toolBtn.classList.replace('text-emerald-700', 'text-emerald-100');
+            } else {
+                guideTab.classList.add('hidden');
+                toolTab.classList.remove('hidden');
+                // Styling cho nút Đang chọn (Tool)
+                toolBtn.classList.replace('bg-emerald-700', 'bg-white');
+                toolBtn.classList.replace('text-emerald-100', 'text-emerald-700');
+                // Styling cho nút Không chọn (Guide)
+                guideBtn.classList.replace('bg-white', 'bg-emerald-700');
+                guideBtn.classList.replace('text-emerald-700', 'text-emerald-100');
+            }
+            
+            // Ẩn lỗi khi chuyển tab
+            document.getElementById('errorMessage').classList.add('hidden');
+        }
+
+        // Hàm sử dụng dữ liệu mẫu từ tab Hướng Dẫn
+        function useSample(formatType) {
+            const jsonText = document.getElementById(`sample-json-${formatType}`).innerText;
+            document.getElementById('jsonInput').value = jsonText;
+            
+            // Tích chọn đúng radio button
+            const radioTựLuận = document.querySelector('input[value="tuluan"]');
+            const radioTrắcNghiệm = document.querySelector('input[value="tracnghiem"]');
+            const radioLyThuyet = document.querySelector('input[value="lythuyet"]');
+            
+            if (formatType === 1) {
+                radioTựLuận.checked = true;
+                document.getElementById('filenameInput').value = "Du_Lieu_Tu_Luan";
+            } else if (formatType === 2) {
+                radioTrắcNghiệm.checked = true;
+                document.getElementById('filenameInput').value = "Du_Lieu_Trac_Nghiem";
+            } else {
+                radioLyThuyet.checked = true;
+                document.getElementById('filenameInput').value = "Du_Lieu_Ly_Thuyet";
+            }
+            
+            // Chuyển sang tab Công cụ
+            switchTab('tool');
+        }
+
+        // Hàm sao chép Prompt cho AI
+        function copyPrompt(button, elementId) {
+            const el = document.getElementById(elementId);
+            el.select();
+            el.setSelectionRange(0, 99999); /* Dành cho thiết bị di động */
+            document.execCommand("copy");
+            
+            const originalText = button.innerHTML;
+            button.innerHTML = "✅ Đã Copy!";
+            button.classList.replace('bg-amber-200', 'bg-green-600');
+            button.classList.replace('text-amber-800', 'text-white');
+            button.classList.replace('hover:bg-amber-300', 'hover:bg-green-700');
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.classList.replace('bg-green-600', 'bg-amber-200');
+                button.classList.replace('text-white', 'text-amber-800');
+                button.classList.replace('hover:bg-green-700', 'hover:bg-amber-300');
+            }, 2000);
+        }
+
+        function exportToExcel() {
+            const jsonInput = document.getElementById('jsonInput').value;
+            const filenameInput = document.getElementById('filenameInput').value.trim();
+            const errorContainer = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            
+            // Lấy định dạng được chọn (tuluan hoặc tracnghiem)
+            const selectedFormat = document.querySelector('input[name="formatType"]:checked').value;
+
+            // Reset thông báo lỗi
+            errorContainer.classList.add('hidden');
+            
+            if (!jsonInput) {
+                showError('Vui lòng nhập mã JSON trước khi tải.');
+                return;
+            }
+
+            let filename = filenameInput || "Danh_sach_cau_hoi";
+            if (!filename.endsWith('.xlsx')) filename += '.xlsx';
+
+            try {
+                // 1. Phân tích chuỗi JSON
+                const data = JSON.parse(jsonInput);
+
+                if (!Array.isArray(data)) {
+                     showError('Định dạng JSON không hợp lệ. Vui lòng cung cấp một mảng các đối tượng (Array). [ ... ]');
+                     return;
+                }
+                if (data.length === 0) {
+                     showError('Mảng JSON trống. Không có dữ liệu để xuất.');
+                     return;
+                }
+
+                // 2. Định dạng dữ liệu theo lựa chọn
+                let excelData = [];
+                let wsCols = [];
+
+                if (selectedFormat === 'tuluan') {
+                    // Dạng 1: Tự luận (3 cột) - KHÔNG TIÊU ĐỀ
+                    excelData = data.map(item => [
+                        item.cau_hoi || '', 
+                        item.dap_an || '', 
+                        item.goi_y || ''
+                    ]);
+                    wsCols = [{wch: 50}, {wch: 25}, {wch: 40}]; // Độ rộng cột
+
+                } else if (selectedFormat === 'tracnghiem') {
+                    // Dạng 2: Trắc nghiệm (7 cột) - KHÔNG TIÊU ĐỀ
+                    excelData = data.map(item => [
+                        item.cau_hoi || '', 
+                        item.phuong_an_1 || '', 
+                        item.phuong_an_2 || '', 
+                        item.phuong_an_3 || '', 
+                        item.phuong_an_4 || '', 
+                        item.dap_an_dung || '',
+                        item.loi_giai || ''
+                    ]);
+                    wsCols = [
+                        {wch: 50}, // Cột 1: Câu hỏi
+                        {wch: 20}, // Cột 2-5: PA 1-4
+                        {wch: 20}, 
+                        {wch: 20}, 
+                        {wch: 20}, 
+                        {wch: 15}, // Cột 6: Đáp án đúng
+                        {wch: 40}  // Cột 7: Lời giải
+                    ];
+                } else if (selectedFormat === 'lythuyet') {
+                    // Dạng 3: Lý thuyết (Tự động mở rộng theo cột)
+                    
+                    // 1. Quét toàn bộ dữ liệu để tìm ra số thứ tự cột lý thuyết lớn nhất
+                    let maxLyThuyetIndex = 0;
+                    data.forEach(item => {
+                        Object.keys(item).forEach(key => {
+                            if (key.startsWith('ly_thuyet_')) {
+                                // Tách lấy con số đằng sau chữ 'ly_thuyet_'
+                                let index = parseInt(key.replace('ly_thuyet_', ''));
+                                if (!isNaN(index) && index > maxLyThuyetIndex) {
+                                    maxLyThuyetIndex = index;
+                                }
+                            }
+                        });
+                    });
+
+                    // Cân bằng nếu không có trường lý thuyết nào
+                    if (maxLyThuyetIndex === 0) maxLyThuyetIndex = 1; 
+
+                    // 2. Chuyển đổi dữ liệu
+                    excelData = data.map(item => {
+                        let row = [
+                            item.ten_de_muc || '',
+                            item.muc_con || ''
+                        ];
+                        // Lấy tuần tự từ ly_thuyet_1 tới ly_thuyet_ lớn nhất để tránh mất cột do nhảy cóc
+                        for (let i = 1; i <= maxLyThuyetIndex; i++) {
+                            row.push(item['ly_thuyet_' + i] || '');
+                        }
+                        return row;
+                    });
+
+                    // 3. Khởi tạo độ rộng cột
+                    wsCols = [
+                        {wch: 30}, // Cột 1: Tên đề mục
+                        {wch: 30}  // Cột 2: Mục con
+                    ];
+                    // Thêm độ rộng cho tất cả các cột lý thuyết
+                    for (let i = 0; i < maxLyThuyetIndex; i++) {
+                        wsCols.push({wch: 40});
+                    }
+                }
+
+                // 3. Tạo Workbook & Worksheet (Sử dụng hàm aoa_to_sheet để xuất mảng thô không tiêu đề)
+                const ws = XLSX.utils.aoa_to_sheet(excelData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "DanhSach");
+
+                // Áp dụng độ rộng cột cho đẹp
+                ws['!cols'] = wsCols;
+
+                // 4. Khởi chạy tải xuống
+                XLSX.writeFile(wb, filename);
+
+            } catch (error) {
+                console.error("JSON Error:", error);
+                showError('Mã JSON bị sai cú pháp. Vui lòng kiểm tra lại (dấu ngoặc, dấu phẩy). Chi tiết lỗi: ' + error.message);
+            }
+        }
+
+        // Hiển thị thông báo lỗi
+        function showError(message) {
+            const errorContainer = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            errorText.textContent = message;
+            errorContainer.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
