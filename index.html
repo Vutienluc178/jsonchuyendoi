@@ -219,6 +219,38 @@ Không kèm văn bản giải thích hay markdown code block thừa (như ```jso
   }
 ]</pre>
                 </div>
+
+                <!-- Định dạng 5 -->
+                <div class="border rounded-xl overflow-hidden">
+                    <div class="bg-gray-100 px-4 py-3 flex justify-between items-center border-b">
+                        <h3 class="font-bold text-gray-800">Định dạng 5: Nhập văn bản Markdown -> Tự động ra chuyên đề (Dạng 4)</h3>
+                        <button onclick="useSample(5)" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-1.5 px-3 rounded shadow transition">Dùng mẫu này</button>
+                    </div>
+                    <div class="p-4 text-sm text-gray-600 mb-0 bg-white">
+                        Hệ thống sẽ tự động quét các thẻ Heading 2 (<code>## </code>) làm Tiêu đề 1, Heading 3 (<code>### </code>) làm Tiêu đề 2. Toàn bộ nội dung chữ, công thức sẽ được tự động gom nhóm, loại bỏ dòng trắng thừa, xuống dòng và thêm ký hiệu <code>||</code> ở đầu mỗi dòng.
+                    </div>
+                    
+                    <pre class="bg-gray-800 text-gray-200 p-4 text-xs overflow-x-auto rounded-b-xl max-h-60" id="sample-json-5">
+## 1. Các ký hiệu cơ bản
+
+Cho tam giác $ABC$ có:
+
+* **Các góc:** $\widehat{A}, \widehat{B}, \widehat{C}$
+* **Độ dài các cạnh đối diện:** $a = BC, b = AC, c = AB$
+* **Nửa chu vi:** $p = \frac{a + b + c}{2}$
+
+---
+
+## 4. Ví dụ minh họa
+
+### Ví dụ 1: Ứng dụng Định lý Cô-sin và diện tích
+
+Cho tam giác $ABC$ có $b = 8, c = 5$ và góc $\widehat{A} = 60^\circ$. Tính cạnh $a$ và diện tích $S$ của tam giác.
+
+**Giải:**
+Áp dụng Định lý Cô-sin để tính cạnh $a$:
+$$a^2 = b^2 + c^2 - 2bc \cos A$$</pre>
+                </div>
             </div>
 
             <!-- TAB: CÔNG CỤ -->
@@ -244,14 +276,21 @@ Không kèm văn bản giải thích hay markdown code block thừa (như ```jso
                             <input type="radio" name="formatType" value="soanchuyende" class="w-5 h-5 text-pink-600 border-gray-300 focus:ring-pink-500">
                             <span class="ml-2 text-gray-800">Dạng 4: Soạn chuyên đề (3 Cột)</span>
                         </label>
+                        <label class="flex items-center cursor-pointer">
+                            <input type="radio" name="formatType" value="markdown_chuyende" class="w-5 h-5 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                            <span class="ml-2 text-gray-800">Dạng 5: Từ Markdown -> Chuyên đề</span>
+                        </label>
                     </div>
                 </div>
 
                 <!-- Khung nhập JSON -->
                 <div>
                     <div class="flex justify-between items-end mb-2">
-                        <label for="jsonInput" class="block text-sm font-bold text-gray-700">Nhập mã JSON vào đây:</label>
-                        <button onclick="document.getElementById('jsonInput').value = ''" class="text-xs text-red-500 hover:text-red-700">Xóa trắng</button>
+                        <label id="inputLabel" for="jsonInput" class="block text-sm font-bold text-gray-700">Nhập mã JSON vào đây:</label>
+                        <div>
+                            <button id="convertMdBtn" onclick="previewMarkdownAsJson()" class="hidden text-xs text-indigo-600 hover:text-indigo-800 mr-3 font-semibold border border-indigo-200 px-2 py-1 rounded bg-indigo-50 transition">🔄 Chuyển sang JSON xem trước</button>
+                            <button onclick="document.getElementById('jsonInput').value = ''" class="text-xs text-red-500 hover:text-red-700">Xóa trắng</button>
+                        </div>
                     </div>
                     <textarea 
                         id="jsonInput" 
@@ -334,6 +373,28 @@ Không kèm văn bản giải thích hay markdown code block thừa (như ```jso
             document.getElementById('errorMessage').classList.add('hidden');
         }
 
+        // Lắng nghe sự kiện thay đổi radio để cập nhật giao diện (Label, Placeholder)
+        document.addEventListener('DOMContentLoaded', () => {
+            const formatRadios = document.querySelectorAll('input[name="formatType"]');
+            const inputLabel = document.getElementById('inputLabel');
+            const convertMdBtn = document.getElementById('convertMdBtn');
+            const jsonInput = document.getElementById('jsonInput');
+
+            formatRadios.forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    if (e.target.value === 'markdown_chuyende') {
+                        inputLabel.textContent = "Nhập văn bản Markdown vào đây:";
+                        jsonInput.placeholder = "Dán Markdown có chứa ## (Tiêu đề 1) và ### (Tiêu đề 2) vào đây...";
+                        convertMdBtn.classList.remove('hidden');
+                    } else {
+                        inputLabel.textContent = "Nhập mã JSON vào đây:";
+                        jsonInput.placeholder = "Dán mã JSON của bạn vào đây...";
+                        convertMdBtn.classList.add('hidden');
+                    }
+                });
+            });
+        });
+
         // Hàm sử dụng dữ liệu mẫu từ tab Hướng Dẫn
         function useSample(formatType) {
             const jsonText = document.getElementById(`sample-json-${formatType}`).innerText;
@@ -344,21 +405,23 @@ Không kèm văn bản giải thích hay markdown code block thừa (như ```jso
             const radioTrắcNghiệm = document.querySelector('input[value="tracnghiem"]');
             const radioLyThuyet = document.querySelector('input[value="lythuyet"]');
             const radioSoanChuyenDe = document.querySelector('input[value="soanchuyende"]');
+            const radioMarkdown = document.querySelector('input[value="markdown_chuyende"]');
             
             if (formatType === 1) {
                 radioTựLuận.checked = true;
                 document.getElementById('filenameInput').value = "Du_Lieu_Tu_Luan";
-            } else if (formatType === 2) {
-                radioTrắcNghiệm.checked = true;
-                document.getElementById('filenameInput').value = "Du_Lieu_Trac_Nghiem";
-            } else if (formatType === 3) {
-                radioLyThuyet.checked = true;
-                document.getElementById('filenameInput').value = "Du_Lieu_Ly_Thuyet";
-            } else {
+            } else if (formatType === 4) {
                 radioSoanChuyenDe.checked = true;
                 document.getElementById('filenameInput').value = "Du_Lieu_Chuyen_De";
+            } else if (formatType === 5) {
+                radioMarkdown.checked = true;
+                document.getElementById('filenameInput').value = "Du_Lieu_Tu_Markdown";
             }
             
+            // Kích hoạt event change thủ công để update UI (label, nút button)
+            const event = new Event('change');
+            document.querySelector(`input[name="formatType"]:checked`).dispatchEvent(event);
+
             // Chuyển sang tab Công cụ
             switchTab('tool');
         }
@@ -384,14 +447,85 @@ Không kèm văn bản giải thích hay markdown code block thừa (như ```jso
             }, 2000);
         }
 
+        function parseMarkdownToFormat4(mdText) {
+            const lines = mdText.split('\n');
+            const result = [];
+            let currentTieuDe = '';
+            let currentTieuDe2 = '';
+            let currentLines = [];
+
+            function saveCurrentBlock() {
+                // Lọc bỏ dòng rỗng, làm sạch Markdown và thêm tiền tố ||
+                const noiDung = currentLines
+                    .map(line => {
+                        let cleanLine = line.trim();
+                        // Xóa ký tự in đậm ** hoặc __
+                        cleanLine = cleanLine.replace(/\*\*|__/g, '');
+                        // Xóa ký tự bullet point (dấu * hoặc - nằm ở đầu dòng)
+                        cleanLine = cleanLine.replace(/^[\*\-]\s+/, '');
+                        return cleanLine.trim();
+                    })
+                    .filter(line => line !== '')
+                    .map(line => '|| ' + line)
+                    .join('\n');
+
+                if (noiDung) { 
+                    result.push({
+                        tieu_de: currentTieuDe,
+                        tieu_de_2: currentTieuDe2,
+                        noi_dung: noiDung
+                    });
+                }
+                currentLines = [];
+            }
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                
+                // Bỏ qua dòng trống và các dòng kẻ ngang Markdown (---, ***, ___)
+                if (line === '' || line.match(/^(-{3,}|\*{3,}|_{3,})$/)) {
+                    continue;
+                }
+
+                if (line.startsWith('## ')) {
+                    saveCurrentBlock(); // Lưu block trước đó nếu có
+                    // Lấy tiêu đề và xóa luôn cả dấu ** nếu có
+                    currentTieuDe = line.substring(3).replace(/\*\*|__/g, '').trim();
+                    currentTieuDe2 = ''; // Reset tiêu đề 2
+                } else if (line.startsWith('### ')) {
+                    saveCurrentBlock(); // Lưu block trước đó nếu có
+                    // Lấy tiêu đề và xóa luôn cả dấu ** nếu có
+                    currentTieuDe2 = line.substring(4).replace(/\*\*|__/g, '').trim();
+                } else {
+                    currentLines.push(line);
+                }
+            }
+            saveCurrentBlock(); // Lưu block cuối cùng
+            return result;
+        }
+
+        // Hàm giúp người dùng xem trước JSON từ Markdown
+        function previewMarkdownAsJson() {
+            const input = document.getElementById('jsonInput');
+            if (!input.value.trim()) return;
+            
+            const parsedData = parseMarkdownToFormat4(input.value);
+            input.value = JSON.stringify(parsedData, null, 2);
+            
+            // Sau khi chuyển sang JSON, tự động chuyển radio sang Dạng 4
+            const radioSoanChuyenDe = document.querySelector('input[value="soanchuyende"]');
+            radioSoanChuyenDe.checked = true;
+            radioSoanChuyenDe.dispatchEvent(new Event('change'));
+        }
+
         function exportToExcel() {
             const jsonInput = document.getElementById('jsonInput').value;
             const filenameInput = document.getElementById('filenameInput').value.trim();
             const errorContainer = document.getElementById('errorMessage');
             const errorText = document.getElementById('errorText');
             
-            // Lấy định dạng được chọn (tuluan hoặc tracnghiem)
-            const selectedFormat = document.querySelector('input[name="formatType"]:checked').value;
+            // Lấy định dạng được chọn
+            let selectedFormat = document.querySelector('input[name="formatType"]:checked').value;
 
             // Reset thông báo lỗi
             errorContainer.classList.add('hidden');
@@ -405,23 +539,36 @@ Không kèm văn bản giải thích hay markdown code block thừa (như ```jso
             if (!filename.endsWith('.xlsx')) filename += '.xlsx';
 
             try {
-                // 1. Phân tích chuỗi JSON
-                const data = JSON.parse(jsonInput);
+                let data = [];
+                let excelFormat = selectedFormat;
 
-                if (!Array.isArray(data)) {
-                     showError('Định dạng JSON không hợp lệ. Vui lòng cung cấp một mảng các đối tượng (Array). [ ... ]');
-                     return;
-                }
-                if (data.length === 0) {
-                     showError('Mảng JSON trống. Không có dữ liệu để xuất.');
-                     return;
+                if (selectedFormat === 'markdown_chuyende') {
+                    // Nếu đang ở dạng Markdown, tự động dịch sang JSON mảng trước
+                    data = parseMarkdownToFormat4(jsonInput);
+                    if (data.length === 0) {
+                        showError('Không tìm thấy nội dung Markdown hợp lệ hoặc thiếu Tiêu đề. Vui lòng kiểm tra lại cấu trúc.');
+                        return;
+                    }
+                    excelFormat = 'soanchuyende'; // Kế thừa toàn bộ logic xuất Excel của Dạng 4
+                } else {
+                    // 1. Phân tích chuỗi JSON nếu không phải Markdown
+                    data = JSON.parse(jsonInput);
+
+                    if (!Array.isArray(data)) {
+                         showError('Định dạng JSON không hợp lệ. Vui lòng cung cấp một mảng các đối tượng (Array). [ ... ]');
+                         return;
+                    }
+                    if (data.length === 0) {
+                         showError('Mảng JSON trống. Không có dữ liệu để xuất.');
+                         return;
+                    }
                 }
 
                 // 2. Định dạng dữ liệu theo lựa chọn
                 let excelData = [];
                 let wsCols = [];
 
-                if (selectedFormat === 'tuluan') {
+                if (excelFormat === 'tuluan') {
                     // Dạng 1: Tự luận (3 cột) - KHÔNG TIÊU ĐỀ
                     excelData = data.map(item => [
                         item.cau_hoi || '', 
@@ -492,8 +639,8 @@ Không kèm văn bản giải thích hay markdown code block thừa (như ```jso
                     for (let i = 0; i < maxLyThuyetIndex; i++) {
                         wsCols.push({wch: 40});
                     }
-                } else if (selectedFormat === 'soanchuyende') {
-                    // Dạng 4: Soạn chuyên đề (3 cột)
+                } else if (excelFormat === 'soanchuyende') {
+                    // Dạng 4 & Dạng 5: Soạn chuyên đề (3 cột)
                     excelData = data.map(item => [
                         item.tieu_de || '', 
                         item.tieu_de_2 || '', 
